@@ -17,12 +17,15 @@ import {
 
 import "./App.css";
 
+import AlarmCenter from "./AlarmCenter";
+
 import PanelDetail, {
   fetchPanelDetail,
 } from "./PanelDetail";
 
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL =
+  "http://127.0.0.1:8000";
 
 
 const RISK_COLORS = {
@@ -35,22 +38,37 @@ const RISK_COLORS = {
 
 
 function App() {
-  const [summary, setSummary] = useState(null);
-  const [panels, setPanels] = useState([]);
-
-  const [backendOnline, setBackendOnline] =
-    useState(false);
-
-  const [loading, setLoading] = useState(true);
-
-  const [lastUpdate, setLastUpdate] =
+  const [summary, setSummary] =
     useState(null);
 
-  const [panelSearch, setPanelSearch] =
-    useState("");
+  const [panels, setPanels] =
+    useState([]);
 
-  const [statusFilter, setStatusFilter] =
-    useState("ALL");
+  const [alarms, setAlarms] =
+    useState([]);
+
+  const [
+    backendOnline,
+    setBackendOnline,
+  ] = useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [
+    lastUpdate,
+    setLastUpdate,
+  ] = useState(null);
+
+  const [
+    panelSearch,
+    setPanelSearch,
+  ] = useState("");
+
+  const [
+    statusFilter,
+    setStatusFilter,
+  ] = useState("ALL");
 
   const [
     selectedPanelId,
@@ -73,96 +91,141 @@ function App() {
   ] = useState(null);
 
 
-  const loadDashboard = useCallback(async () => {
-    try {
-      const [
-        summaryResponse,
-        panelsResponse,
-      ] = await Promise.all([
-        axios.get(
-          `${API_BASE_URL}/dashboard/summary`
-        ),
-
-        axios.get(
-          `${API_BASE_URL}/dashboard/panels`
-        ),
-      ]);
-
-      setSummary(summaryResponse.data);
-
-      setPanels(
-        panelsResponse.data.panels ?? []
-      );
-
-      setBackendOnline(true);
-
-      if (summaryResponse.data.generated_at) {
-        setLastUpdate(
-          new Date(
-            summaryResponse.data.generated_at
-          )
-        );
-      }
-    } catch (error) {
-      console.error(
-        "GridGuard dashboard request failed:",
-        error
-      );
-
-      setBackendOnline(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-
-  const openPanelDetail = useCallback(
-    async (panelId) => {
-      setSelectedPanelId(panelId);
-
-      setSelectedPanelDetail(null);
-      setPanelDetailError(null);
-      setPanelDetailLoading(true);
-
+  const loadDashboard =
+    useCallback(async () => {
       try {
-        const data =
-          await fetchPanelDetail(panelId);
+        const [
+          summaryResponse,
+          panelsResponse,
+          alarmsResponse,
+        ] = await Promise.all([
+          axios.get(
+            `${API_BASE_URL}/dashboard/summary`
+          ),
 
-        setSelectedPanelDetail(data);
+          axios.get(
+            `${API_BASE_URL}/dashboard/panels`
+          ),
+
+          axios.get(
+            `${API_BASE_URL}/alarms`
+          ),
+        ]);
+
+        setSummary(
+          summaryResponse.data
+        );
+
+        setPanels(
+          panelsResponse.data.panels ??
+            []
+        );
+
+        setAlarms(
+          alarmsResponse.data.alarms ??
+            []
+        );
+
+        setBackendOnline(true);
+
+        if (
+          summaryResponse.data
+            .generated_at
+        ) {
+          setLastUpdate(
+            new Date(
+              summaryResponse.data
+                .generated_at
+            )
+          );
+        }
       } catch (error) {
         console.error(
-          "Panel detail request failed:",
+          "GridGuard dashboard request failed:",
           error
         );
 
-        setPanelDetailError(
-          "Panel detail could not be loaded."
-        );
+        setBackendOnline(false);
       } finally {
-        setPanelDetailLoading(false);
+        setLoading(false);
       }
-    },
-    []
-  );
+    }, []);
 
 
-  const closePanelDetail = useCallback(() => {
-    setSelectedPanelId(null);
-    setSelectedPanelDetail(null);
-    setPanelDetailError(null);
-    setPanelDetailLoading(false);
-  }, []);
+  const openPanelDetail =
+    useCallback(
+      async (panelId) => {
+        setSelectedPanelId(
+          panelId
+        );
+
+        setSelectedPanelDetail(
+          null
+        );
+
+        setPanelDetailError(
+          null
+        );
+
+        setPanelDetailLoading(
+          true
+        );
+
+        try {
+          const data =
+            await fetchPanelDetail(
+              panelId
+            );
+
+          setSelectedPanelDetail(
+            data
+          );
+        } catch (error) {
+          console.error(
+            "Panel detail request failed:",
+            error
+          );
+
+          setPanelDetailError(
+            "Panel detail could not be loaded."
+          );
+        } finally {
+          setPanelDetailLoading(
+            false
+          );
+        }
+      },
+      []
+    );
+
+
+  const closePanelDetail =
+    useCallback(() => {
+      setSelectedPanelId(null);
+
+      setSelectedPanelDetail(
+        null
+      );
+
+      setPanelDetailError(null);
+
+      setPanelDetailLoading(
+        false
+      );
+    }, []);
 
 
   useEffect(() => {
     loadDashboard();
 
-    const interval = setInterval(
-      loadDashboard,
-      5000
-    );
+    const interval =
+      setInterval(
+        loadDashboard,
+        5000
+      );
 
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(interval);
   }, [loadDashboard]);
 
 
@@ -171,32 +234,41 @@ function App() {
       return undefined;
     }
 
-    const interval = setInterval(
-      async () => {
-        try {
-          const data =
-            await fetchPanelDetail(
-              selectedPanelId
+    const interval =
+      setInterval(
+        async () => {
+          try {
+            const data =
+              await fetchPanelDetail(
+                selectedPanelId
+              );
+
+            setSelectedPanelDetail(
+              data
             );
 
-          setSelectedPanelDetail(data);
-          setPanelDetailError(null);
-        } catch (error) {
-          console.error(
-            "Panel detail refresh failed:",
-            error
-          );
-        }
-      },
-      5000
-    );
+            setPanelDetailError(
+              null
+            );
+          } catch (error) {
+            console.error(
+              "Panel detail refresh failed:",
+              error
+            );
+          }
+        },
+        5000
+      );
 
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(interval);
   }, [selectedPanelId]);
 
 
   useEffect(() => {
-    function handleEscape(event) {
+    function handleEscape(
+      event
+    ) {
       if (
         event.key === "Escape" &&
         selectedPanelId
@@ -232,82 +304,101 @@ function App() {
     };
 
 
-  const riskChartData = useMemo(
-    () =>
-      [
-        {
-          name: "Normal",
-          key: "normal",
-          value: distribution.normal,
-        },
-        {
-          name: "Warning",
-          key: "warning",
-          value: distribution.warning,
-        },
-        {
-          name: "High",
-          key: "high",
-          value: distribution.high,
-        },
-        {
-          name: "Critical",
-          key: "critical",
-          value: distribution.critical,
-        },
-        {
-          name: "Unknown",
-          key: "unknown",
-          value: distribution.unknown,
-        },
-      ].filter(
-        (item) => item.value > 0
-      ),
-    [distribution]
-  );
+  const riskChartData =
+    useMemo(
+      () =>
+        [
+          {
+            name: "Normal",
+            key: "normal",
+            value:
+              distribution.normal,
+          },
+          {
+            name: "Warning",
+            key: "warning",
+            value:
+              distribution.warning,
+          },
+          {
+            name: "High",
+            key: "high",
+            value:
+              distribution.high,
+          },
+          {
+            name: "Critical",
+            key: "critical",
+            value:
+              distribution.critical,
+          },
+          {
+            name: "Unknown",
+            key: "unknown",
+            value:
+              distribution.unknown,
+          },
+        ].filter(
+          (item) =>
+            item.value > 0
+        ),
+      [distribution]
+    );
 
 
-  const elevatedRiskPanels = useMemo(
-    () =>
-      (
-        summary?.highest_risk_panels ?? []
-      ).filter(
-        (panel) =>
-          panel.risk_score > 0 &&
-          panel.status !== "NORMAL" &&
-          panel.status !== "UNKNOWN"
-      ),
-    [summary]
-  );
+  const elevatedRiskPanels =
+    useMemo(
+      () =>
+        (
+          summary
+            ?.highest_risk_panels ??
+          []
+        ).filter(
+          (panel) =>
+            panel.risk_score > 0 &&
+            panel.status !==
+              "NORMAL" &&
+            panel.status !==
+              "UNKNOWN"
+        ),
+      [summary]
+    );
 
 
-  const filteredPanels = useMemo(() => {
-    const searchValue =
-      panelSearch
-        .trim()
-        .toLowerCase();
+  const filteredPanels =
+    useMemo(() => {
+      const searchValue =
+        panelSearch
+          .trim()
+          .toLowerCase();
 
-    return panels.filter((panel) => {
-      const matchesSearch =
-        !searchValue ||
-        panel.panel_id
-          .toLowerCase()
-          .includes(searchValue);
+      return panels.filter(
+        (panel) => {
+          const matchesSearch =
+            !searchValue ||
+            panel.panel_id
+              .toLowerCase()
+              .includes(
+                searchValue
+              );
 
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        panel.status === statusFilter;
+          const matchesStatus =
+            statusFilter ===
+              "ALL" ||
+            panel.status ===
+              statusFilter;
 
-      return (
-        matchesSearch &&
-        matchesStatus
+          return (
+            matchesSearch &&
+            matchesStatus
+          );
+        }
       );
-    });
-  }, [
-    panels,
-    panelSearch,
-    statusFilter,
-  ]);
+    }, [
+      panels,
+      panelSearch,
+      statusFilter,
+    ]);
 
 
   const connectedPanels =
@@ -322,14 +413,15 @@ function App() {
       return "--";
     }
 
-    return lastUpdate.toLocaleTimeString(
-      "tr-TR",
-      {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }
-    );
+    return lastUpdate
+      .toLocaleTimeString(
+        "tr-TR",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }
+      );
   }
 
 
@@ -344,11 +436,15 @@ function App() {
       return "--";
     }
 
-    return Number(value).toFixed(digits);
+    return Number(
+      value
+    ).toFixed(digits);
   }
 
 
-  function formatLastSeen(value) {
+  function formatLastSeen(
+    value
+  ) {
     if (!value) {
       return "--";
     }
@@ -378,11 +474,15 @@ function App() {
           </div>
 
           <div>
-            <h1>GridGuard</h1>
+
+            <h1>
+              GridGuard
+            </h1>
 
             <p>
               Operations Center
             </p>
+
           </div>
 
         </div>
@@ -561,6 +661,7 @@ function App() {
               normal-card
             "
           >
+
             <span>
               NORMAL
             </span>
@@ -568,6 +669,7 @@ function App() {
             <strong>
               {distribution.normal}
             </strong>
+
           </article>
 
 
@@ -577,6 +679,7 @@ function App() {
               warning-card
             "
           >
+
             <span>
               WARNING
             </span>
@@ -584,6 +687,7 @@ function App() {
             <strong>
               {distribution.warning}
             </strong>
+
           </article>
 
 
@@ -593,6 +697,7 @@ function App() {
               high-card
             "
           >
+
             <span>
               HIGH
             </span>
@@ -600,6 +705,7 @@ function App() {
             <strong>
               {distribution.high}
             </strong>
+
           </article>
 
 
@@ -609,6 +715,7 @@ function App() {
               critical-card
             "
           >
+
             <span>
               CRITICAL
             </span>
@@ -616,6 +723,7 @@ function App() {
             <strong>
               {distribution.critical}
             </strong>
+
           </article>
 
         </section>
@@ -646,7 +754,8 @@ function App() {
 
               <div className="chart-container">
 
-                {riskChartData.length > 0 ? (
+                {riskChartData.length >
+                0 ? (
 
                   <ResponsiveContainer
                     width="100%"
@@ -656,7 +765,9 @@ function App() {
                     <PieChart>
 
                       <Pie
-                        data={riskChartData}
+                        data={
+                          riskChartData
+                        }
                         dataKey="value"
                         nameKey="name"
                         innerRadius="63%"
@@ -666,14 +777,18 @@ function App() {
 
                         {riskChartData.map(
                           (entry) => (
+
                             <Cell
-                              key={entry.key}
+                              key={
+                                entry.key
+                              }
                               fill={
                                 RISK_COLORS[
                                   entry.key
                                 ]
                               }
                             />
+
                           )
                         )}
 
@@ -712,13 +827,31 @@ function App() {
               <div className="legend">
 
                 {[
-                  ["normal", "Normal"],
-                  ["warning", "Warning"],
-                  ["high", "High"],
-                  ["critical", "Critical"],
-                  ["unknown", "Unknown"],
+                  [
+                    "normal",
+                    "Normal",
+                  ],
+                  [
+                    "warning",
+                    "Warning",
+                  ],
+                  [
+                    "high",
+                    "High",
+                  ],
+                  [
+                    "critical",
+                    "Critical",
+                  ],
+                  [
+                    "unknown",
+                    "Unknown",
+                  ],
                 ].map(
-                  ([key, label]) => (
+                  ([
+                    key,
+                    label,
+                  ]) => (
 
                     <div
                       className="legend-row"
@@ -742,7 +875,11 @@ function App() {
                       </div>
 
                       <strong>
-                        {distribution[key]}
+                        {
+                          distribution[
+                            key
+                          ]
+                        }
                       </strong>
 
                     </div>
@@ -776,7 +913,8 @@ function App() {
             </div>
 
 
-            {elevatedRiskPanels.length === 0 ? (
+            {elevatedRiskPanels.length ===
+            0 ? (
 
               <div className="healthy-state">
 
@@ -805,7 +943,9 @@ function App() {
 
                     <button
                       className="risk-row risk-row-button"
-                      key={panel.panel_id}
+                      key={
+                        panel.panel_id
+                      }
                       onClick={() =>
                         openPanelDetail(
                           panel.panel_id
@@ -817,11 +957,15 @@ function App() {
                       <div>
 
                         <strong>
-                          {panel.panel_id}
+                          {
+                            panel.panel_id
+                          }
                         </strong>
 
                         <span>
-                          {panel.primary_risk}
+                          {
+                            panel.primary_risk
+                          }
                         </span>
 
                       </div>
@@ -835,11 +979,15 @@ function App() {
                               .toLowerCase()
                           }`}
                         >
-                          {panel.status}
+                          {
+                            panel.status
+                          }
                         </span>
 
                         <strong>
-                          {panel.risk_score}
+                          {
+                            panel.risk_score
+                          }
                         </strong>
 
                       </div>
@@ -856,6 +1004,14 @@ function App() {
           </article>
 
         </section>
+
+
+        <AlarmCenter
+          alarms={alarms}
+          onOpenPanel={
+            openPanelDetail
+          }
+        />
 
 
         <section className="panel-monitor">
@@ -885,7 +1041,9 @@ function App() {
               Showing
 
               <strong>
-                {filteredPanels.length}
+                {
+                  filteredPanels.length
+                }
               </strong>
 
               panels
@@ -971,7 +1129,8 @@ function App() {
 
               <tbody>
 
-                {filteredPanels.length === 0 ? (
+                {filteredPanels.length ===
+                0 ? (
 
                   <tr>
 
@@ -990,7 +1149,9 @@ function App() {
                     (panel) => (
 
                       <tr
-                        key={panel.panel_id}
+                        key={
+                          panel.panel_id
+                        }
                         className={`clickable-panel-row ${
                           panel.has_open_alarm
                             ? "alarm-row"
@@ -1015,7 +1176,9 @@ function App() {
                             />
 
                             <strong>
-                              {panel.panel_id}
+                              {
+                                panel.panel_id
+                              }
                             </strong>
 
                           </div>
@@ -1031,14 +1194,18 @@ function App() {
                                 .toLowerCase()
                             }`}
                           >
-                            {panel.status}
+                            {
+                              panel.status
+                            }
                           </span>
 
                         </td>
 
 
                         <td className="risk-score-cell">
-                          {panel.risk_score}
+                          {
+                            panel.risk_score
+                          }
                         </td>
 
 
@@ -1092,8 +1259,10 @@ function App() {
                               ).toLowerCase()
                             }`}
                           >
-                            {panel.data_quality ??
-                              "UNKNOWN"}
+                            {
+                              panel.data_quality ??
+                              "UNKNOWN"
+                            }
                           </span>
 
                         </td>
@@ -1138,12 +1307,22 @@ function App() {
 
 
       {selectedPanelId && (
+
         <PanelDetail
-          detail={selectedPanelDetail}
-          loading={panelDetailLoading}
-          error={panelDetailError}
-          onClose={closePanelDetail}
+          detail={
+            selectedPanelDetail
+          }
+          loading={
+            panelDetailLoading
+          }
+          error={
+            panelDetailError
+          }
+          onClose={
+            closePanelDetail
+          }
         />
+
       )}
 
     </div>
