@@ -295,6 +295,34 @@ def evaluate_risk(history: list[dict]) -> dict:
                 "Severe thermal escalation pattern detected."
             )
 
+    moderate_pd_event = (
+        pd_index is not None
+        and pd_index >= 40
+        and pd_change >= 20
+    )
+
+    if moderate_pd_event:
+        risk_score = max(risk_score, 20)
+
+    if "Rising partial discharge pattern detected." not in causes:
+        causes.append(
+            "Rising partial discharge pattern detected."
+        )
+
+    severe_pd_event = (
+        pd_index is not None
+        and pd_index >= 70
+        and pd_change >= 40
+    )    
+
+    if severe_pd_event:
+        risk_score = max(risk_score, 50)
+
+        if "Severe partial discharge escalation pattern detected." not in causes:
+            causes.append(
+                "Severe partial discharge escalation pattern detected."
+            )
+
     if risk_score >= 75:
         status = "CRITICAL"
 
