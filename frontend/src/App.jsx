@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import axios from "axios";
+
 import {
   Cell,
   Pie,
@@ -7,9 +14,12 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+
 import "./App.css";
 
+
 const API_BASE_URL = "http://127.0.0.1:8000";
+
 
 const RISK_COLORS = {
   normal: "#55d6a4",
@@ -19,24 +29,55 @@ const RISK_COLORS = {
   unknown: "#60798b",
 };
 
+
 function App() {
   const [summary, setSummary] = useState(null);
-  const [backendOnline, setBackendOnline] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(null);
+  const [panels, setPanels] = useState([]);
+
+  const [backendOnline, setBackendOnline] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [lastUpdate, setLastUpdate] =
+    useState(null);
+
+  const [panelSearch, setPanelSearch] =
+    useState("");
+
+  const [statusFilter, setStatusFilter] =
+    useState("ALL");
+
 
   const loadDashboard = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/dashboard/summary`
+      const [
+        summaryResponse,
+        panelsResponse,
+      ] = await Promise.all([
+        axios.get(
+          `${API_BASE_URL}/dashboard/summary`
+        ),
+
+        axios.get(
+          `${API_BASE_URL}/dashboard/panels`
+        ),
+      ]);
+
+      setSummary(summaryResponse.data);
+
+      setPanels(
+        panelsResponse.data.panels ?? []
       );
 
-      setSummary(response.data);
       setBackendOnline(true);
 
-      if (response.data.generated_at) {
+      if (summaryResponse.data.generated_at) {
         setLastUpdate(
-          new Date(response.data.generated_at)
+          new Date(
+            summaryResponse.data.generated_at
+          )
         );
       }
     } catch (error) {
@@ -51,6 +92,7 @@ function App() {
     }
   }, []);
 
+
   useEffect(() => {
     loadDashboard();
 
@@ -62,13 +104,16 @@ function App() {
     return () => clearInterval(interval);
   }, [loadDashboard]);
 
-  const distribution = summary?.risk_distribution ?? {
-    normal: 0,
-    warning: 0,
-    high: 0,
-    critical: 0,
-    unknown: 0,
-  };
+
+  const distribution =
+    summary?.risk_distribution ?? {
+      normal: 0,
+      warning: 0,
+      high: 0,
+      critical: 0,
+      unknown: 0,
+    };
+
 
   const riskChartData = useMemo(
     () =>
@@ -98,13 +143,18 @@ function App() {
           key: "unknown",
           value: distribution.unknown,
         },
-      ].filter((item) => item.value > 0),
+      ].filter(
+        (item) => item.value > 0
+      ),
     [distribution]
   );
 
+
   const elevatedRiskPanels = useMemo(
     () =>
-      (summary?.highest_risk_panels ?? []).filter(
+      (
+        summary?.highest_risk_panels ?? []
+      ).filter(
         (panel) =>
           panel.risk_score > 0 &&
           panel.status !== "NORMAL" &&
@@ -113,7 +163,44 @@ function App() {
     [summary]
   );
 
-  const formatUpdateTime = () => {
+
+  const filteredPanels = useMemo(() => {
+    const searchValue =
+      panelSearch
+        .trim()
+        .toLowerCase();
+
+    return panels.filter((panel) => {
+      const matchesSearch =
+        !searchValue ||
+        panel.panel_id
+          .toLowerCase()
+          .includes(searchValue);
+
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        panel.status === statusFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus
+      );
+    });
+  }, [
+    panels,
+    panelSearch,
+    statusFilter,
+  ]);
+
+
+  const connectedPanels =
+    summary?.connected_panels ?? 0;
+
+  const activeAlarms =
+    summary?.active_alarms ?? 0;
+
+
+  function formatUpdateTime() {
     if (!lastUpdate) {
       return "--";
     }
@@ -126,60 +213,118 @@ function App() {
         second: "2-digit",
       }
     );
-  };
+  }
 
-  const connectedPanels =
-    summary?.connected_panels ?? 0;
 
-  const activeAlarms =
-    summary?.active_alarms ?? 0;
+  function formatNumber(
+    value,
+    digits = 1
+  ) {
+    if (
+      value === null ||
+      value === undefined
+    ) {
+      return "--";
+    }
+
+    return Number(value).toFixed(digits);
+  }
+
+
+  function formatLastSeen(value) {
+    if (!value) {
+      return "--";
+    }
+
+    return new Date(
+      value
+    ).toLocaleTimeString(
+      "tr-TR",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }
+    );
+  }
+
 
   return (
     <div className="app-shell">
+
       <header className="topbar">
+
         <div className="brand-row">
-          <div className="brand-mark">G</div>
+
+          <div className="brand-mark">
+            G
+          </div>
 
           <div>
             <h1>GridGuard</h1>
-            <p>Operations Center</p>
+
+            <p>
+              Operations Center
+            </p>
           </div>
+
         </div>
 
+
         <div className="topbar-right">
+
           <div className="update-info">
             Last update
-            <strong>{formatUpdateTime()}</strong>
+
+            <strong>
+              {formatUpdateTime()}
+            </strong>
           </div>
+
 
           <div
             className={`system-badge ${
-              backendOnline ? "online" : "offline"
+              backendOnline
+                ? "online"
+                : "offline"
             }`}
           >
+
             <span className="status-dot" />
 
             {backendOnline
               ? "SYSTEM ONLINE"
               : "SYSTEM OFFLINE"}
+
           </div>
+
         </div>
+
       </header>
 
+
       <main className="dashboard">
+
         <section className="intro">
+
           <div>
+
             <p className="eyebrow">
               LOW VOLTAGE DISTRIBUTION MONITORING
             </p>
 
-            <h2>Grid Overview</h2>
+            <h2>
+              Grid Overview
+            </h2>
 
             <p className="subtitle">
-              Real-time telemetry, explainable risk
-              analysis and early-warning monitoring.
+              Real-time telemetry,
+              explainable risk analysis
+              and early-warning monitoring.
             </p>
+
           </div>
+
 
           <button
             className="refresh-button"
@@ -187,27 +332,50 @@ function App() {
           >
             Refresh Data
           </button>
+
         </section>
 
+
         <section className="primary-grid">
+
           <article className="metric-card">
+
             <div className="metric-header">
-              <span>Connected Panels</span>
-              <span className="metric-indicator online-dot" />
+
+              <span>
+                Connected Panels
+              </span>
+
+              <span
+                className="
+                  metric-indicator
+                  online-dot
+                "
+              />
+
             </div>
 
             <strong>
-              {loading ? "--" : connectedPanels}
+              {loading
+                ? "--"
+                : connectedPanels}
             </strong>
 
             <p>
               Registered monitoring modules
             </p>
+
           </article>
 
+
           <article className="metric-card">
+
             <div className="metric-header">
-              <span>Active Alarms</span>
+
+              <span>
+                Active Alarms
+              </span>
+
               <span
                 className={`metric-indicator ${
                   activeAlarms > 0
@@ -215,20 +383,28 @@ function App() {
                     : "online-dot"
                 }`}
               />
+
             </div>
 
             <strong>
-              {loading ? "--" : activeAlarms}
+              {loading
+                ? "--"
+                : activeAlarms}
             </strong>
 
             <p>
               Open operational incidents
             </p>
+
           </article>
 
+
           <article className="metric-card">
+
             <div className="metric-header">
-              <span>System Health</span>
+              <span>
+                System Health
+              </span>
             </div>
 
             <strong
@@ -246,60 +422,117 @@ function App() {
             </strong>
 
             <p>
-              GridGuard API and monitoring core
+              GridGuard API and
+              monitoring core
             </p>
+
           </article>
+
         </section>
 
+
         <section className="risk-grid">
-          <article className="risk-card normal-card">
-            <span>NORMAL</span>
+
+          <article
+            className="
+              risk-card
+              normal-card
+            "
+          >
+            <span>
+              NORMAL
+            </span>
+
             <strong>
               {distribution.normal}
             </strong>
           </article>
 
-          <article className="risk-card warning-card">
-            <span>WARNING</span>
+
+          <article
+            className="
+              risk-card
+              warning-card
+            "
+          >
+            <span>
+              WARNING
+            </span>
+
             <strong>
               {distribution.warning}
             </strong>
           </article>
 
-          <article className="risk-card high-card">
-            <span>HIGH</span>
+
+          <article
+            className="
+              risk-card
+              high-card
+            "
+          >
+            <span>
+              HIGH
+            </span>
+
             <strong>
               {distribution.high}
             </strong>
           </article>
 
-          <article className="risk-card critical-card">
-            <span>CRITICAL</span>
+
+          <article
+            className="
+              risk-card
+              critical-card
+            "
+          >
+            <span>
+              CRITICAL
+            </span>
+
             <strong>
               {distribution.critical}
             </strong>
           </article>
+
         </section>
 
+
         <section className="content-grid">
+
           <article className="panel-card">
+
             <div className="section-header">
+
               <div>
+
                 <p className="eyebrow">
                   LIVE STATUS
                 </p>
-                <h3>Risk Distribution</h3>
+
+                <h3>
+                  Risk Distribution
+                </h3>
+
               </div>
+
             </div>
 
+
             <div className="risk-chart-layout">
+
               <div className="chart-container">
+
                 {riskChartData.length > 0 ? (
+
                   <ResponsiveContainer
                     width="100%"
                     height="100%"
                   >
+
                     <PieChart>
+
                       <Pie
                         data={riskChartData}
                         dataKey="value"
@@ -308,6 +541,7 @@ function App() {
                         outerRadius="86%"
                         paddingAngle={2}
                       >
+
                         {riskChartData.map(
                           (entry) => (
                             <Cell
@@ -320,71 +554,110 @@ function App() {
                             />
                           )
                         )}
+
                       </Pie>
 
                       <Tooltip />
+
                     </PieChart>
+
                   </ResponsiveContainer>
+
                 ) : (
+
                   <div className="empty-state">
                     No risk data available.
                   </div>
+
                 )}
 
+
                 <div className="chart-center">
+
                   <strong>
                     {connectedPanels}
                   </strong>
-                  <span>Panels</span>
+
+                  <span>
+                    Panels
+                  </span>
+
                 </div>
+
               </div>
 
+
               <div className="legend">
+
                 {[
                   ["normal", "Normal"],
                   ["warning", "Warning"],
                   ["high", "High"],
                   ["critical", "Critical"],
                   ["unknown", "Unknown"],
-                ].map(([key, label]) => (
-                  <div
-                    className="legend-row"
-                    key={key}
-                  >
-                    <div>
-                      <span
-                        className="legend-dot"
-                        style={{
-                          background:
-                            RISK_COLORS[key],
-                        }}
-                      />
+                ].map(
+                  ([key, label]) => (
 
-                      {label}
+                    <div
+                      className="legend-row"
+                      key={key}
+                    >
+
+                      <div>
+
+                        <span
+                          className="legend-dot"
+                          style={{
+                            background:
+                              RISK_COLORS[
+                                key
+                              ],
+                          }}
+                        />
+
+                        {label}
+
+                      </div>
+
+                      <strong>
+                        {distribution[key]}
+                      </strong>
+
                     </div>
 
-                    <strong>
-                      {distribution[key]}
-                    </strong>
-                  </div>
-                ))}
+                  )
+                )}
+
               </div>
+
             </div>
+
           </article>
 
+
           <article className="panel-card">
+
             <div className="section-header">
+
               <div>
+
                 <p className="eyebrow">
                   PRIORITY MONITORING
                 </p>
 
-                <h3>Highest Risk Panels</h3>
+                <h3>
+                  Highest Risk Panels
+                </h3>
+
               </div>
+
             </div>
 
+
             {elevatedRiskPanels.length === 0 ? (
+
               <div className="healthy-state">
+
                 <div className="healthy-icon">
                   ✓
                 </div>
@@ -394,19 +667,27 @@ function App() {
                 </h4>
 
                 <p>
-                  All currently evaluated panels are
-                  operating within normal conditions.
+                  All currently evaluated
+                  panels are operating
+                  within normal conditions.
                 </p>
+
               </div>
+
             ) : (
+
               <div className="risk-list">
+
                 {elevatedRiskPanels.map(
                   (panel) => (
+
                     <div
                       className="risk-row"
                       key={panel.panel_id}
                     >
+
                       <div>
+
                         <strong>
                           {panel.panel_id}
                         </strong>
@@ -414,11 +695,17 @@ function App() {
                         <span>
                           {panel.primary_risk}
                         </span>
+
                       </div>
 
+
                       <div className="risk-row-right">
+
                         <span
-                          className={`risk-pill ${panel.status.toLowerCase()}`}
+                          className={`risk-pill ${
+                            panel.status
+                              .toLowerCase()
+                          }`}
                         >
                           {panel.status}
                         </span>
@@ -426,28 +713,297 @@ function App() {
                         <strong>
                           {panel.risk_score}
                         </strong>
+
                       </div>
+
                     </div>
+
                   )
                 )}
+
               </div>
+
             )}
+
           </article>
+
         </section>
 
+
+        <section className="panel-monitor">
+
+          <div className="monitor-heading">
+
+            <div>
+
+              <p className="eyebrow">
+                ASSET MONITORING
+              </p>
+
+              <h3>
+                Panel Monitor
+              </h3>
+
+              <p>
+                Live operational state
+                of registered panels.
+              </p>
+
+            </div>
+
+
+            <div className="panel-count">
+              Showing
+
+              <strong>
+                {filteredPanels.length}
+              </strong>
+
+              panels
+            </div>
+
+          </div>
+
+
+          <div className="monitor-controls">
+
+            <input
+              type="text"
+              placeholder="Search panel ID..."
+              value={panelSearch}
+              onChange={(event) =>
+                setPanelSearch(
+                  event.target.value
+                )
+              }
+            />
+
+
+            <select
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(
+                  event.target.value
+                )
+              }
+            >
+
+              <option value="ALL">
+                All Statuses
+              </option>
+
+              <option value="NORMAL">
+                Normal
+              </option>
+
+              <option value="WARNING">
+                Warning
+              </option>
+
+              <option value="HIGH">
+                High
+              </option>
+
+              <option value="CRITICAL">
+                Critical
+              </option>
+
+              <option value="UNKNOWN">
+                Unknown
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div className="table-wrapper">
+
+            <table className="panel-table">
+
+              <thead>
+
+                <tr>
+                  <th>Panel</th>
+                  <th>Status</th>
+                  <th>Risk</th>
+                  <th>Current</th>
+                  <th>Cable Temp</th>
+                  <th>Ambient</th>
+                  <th>Humidity</th>
+                  <th>PD</th>
+                  <th>Quality</th>
+                  <th>Last Seen</th>
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {filteredPanels.length === 0 ? (
+
+                  <tr>
+
+                    <td
+                      colSpan="10"
+                      className="no-panel-results"
+                    >
+                      No matching panels found.
+                    </td>
+
+                  </tr>
+
+                ) : (
+
+                  filteredPanels.map(
+                    (panel) => (
+
+                      <tr
+                        key={panel.panel_id}
+                        className={
+                          panel.has_open_alarm
+                            ? "alarm-row"
+                            : ""
+                        }
+                      >
+
+                        <td>
+
+                          <div className="panel-id-cell">
+
+                            <span
+                              className={`panel-state-dot ${
+                                panel.status
+                                  .toLowerCase()
+                              }`}
+                            />
+
+                            <strong>
+                              {panel.panel_id}
+                            </strong>
+
+                          </div>
+
+                        </td>
+
+
+                        <td>
+
+                          <span
+                            className={`table-status ${
+                              panel.status
+                                .toLowerCase()
+                            }`}
+                          >
+                            {panel.status}
+                          </span>
+
+                        </td>
+
+
+                        <td className="risk-score-cell">
+                          {panel.risk_score}
+                        </td>
+
+
+                        <td>
+                          {formatNumber(
+                            panel.current_a,
+                            1
+                          )} A
+                        </td>
+
+
+                        <td>
+                          {formatNumber(
+                            panel.cable_temperature_c,
+                            1
+                          )} °C
+                        </td>
+
+
+                        <td>
+                          {formatNumber(
+                            panel.ambient_temperature_c,
+                            1
+                          )} °C
+                        </td>
+
+
+                        <td>
+                          {formatNumber(
+                            panel.humidity_pct,
+                            1
+                          )} %
+                        </td>
+
+
+                        <td>
+                          {formatNumber(
+                            panel.pd_index,
+                            1
+                          )}
+                        </td>
+
+
+                        <td>
+
+                          <span
+                            className={`quality-pill ${
+                              (
+                                panel.data_quality ??
+                                "unknown"
+                              ).toLowerCase()
+                            }`}
+                          >
+                            {panel.data_quality ??
+                              "UNKNOWN"}
+                          </span>
+
+                        </td>
+
+
+                        <td className="last-seen-cell">
+                          {formatLastSeen(
+                            panel.last_seen
+                          )}
+                        </td>
+
+                      </tr>
+
+                    )
+                  )
+
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+
         <footer className="dashboard-footer">
+
           <span>
-            GridGuard Edge Monitoring &
-            Early Warning System
+            GridGuard Edge Monitoring
+            & Early Warning System
           </span>
 
           <span>
             Auto-refresh: 5 seconds
           </span>
+
         </footer>
+
       </main>
+
     </div>
   );
 }
+
 
 export default App;

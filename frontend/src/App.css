@@ -29,7 +29,9 @@ body {
     #061019;
 }
 
-button {
+button,
+input,
+select {
   font: inherit;
 }
 
@@ -44,6 +46,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 25px;
 
   border-bottom: 1px solid #1a2d3b;
@@ -87,6 +90,7 @@ button {
   color: #8094a6;
 
   font-size: 11px;
+
   letter-spacing: 1.6px;
   text-transform: uppercase;
 }
@@ -101,10 +105,13 @@ button {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+
   gap: 2px;
 
   color: #60798b;
+
   font-size: 10px;
+
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -117,6 +124,7 @@ button {
 .system-badge {
   display: flex;
   align-items: center;
+
   gap: 9px;
 
   padding: 10px 15px;
@@ -126,6 +134,7 @@ button {
 
   font-size: 11px;
   font-weight: 800;
+
   letter-spacing: 1px;
 }
 
@@ -148,9 +157,13 @@ button {
 }
 
 .dashboard {
-  width: min(1420px, calc(100% - 64px));
+  width: min(
+    1420px,
+    calc(100% - 64px)
+  );
 
   margin: 0 auto;
+
   padding: 48px 0 28px;
 }
 
@@ -158,8 +171,10 @@ button {
   margin-bottom: 28px;
 
   display: flex;
+
   align-items: flex-end;
   justify-content: space-between;
+
   gap: 30px;
 }
 
@@ -170,6 +185,7 @@ button {
 
   font-size: 10px;
   font-weight: 800;
+
   letter-spacing: 1.8px;
 }
 
@@ -193,6 +209,7 @@ button {
   border-radius: 8px;
 
   color: #d1e0e9;
+
   background: #0b1d29;
 
   cursor: pointer;
@@ -204,14 +221,18 @@ button {
 
 .primary-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
   gap: 16px;
 
   margin-bottom: 16px;
 }
 
 .metric-card,
-.panel-card {
+.panel-card,
+.panel-monitor {
   border: 1px solid #1c3141;
   border-radius: 12px;
 
@@ -225,15 +246,18 @@ button {
 
 .metric-card {
   min-height: 154px;
+
   padding: 23px;
 }
 
 .metric-header {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 
   color: #8fa4b4;
+
   font-size: 12px;
   font-weight: 700;
 }
@@ -247,12 +271,14 @@ button {
 
 .online-dot {
   background: #55d6a4;
-  box-shadow: 0 0 10px #55d6a4;
+  box-shadow:
+    0 0 10px #55d6a4;
 }
 
 .alarm-dot {
   background: #ff5d6c;
-  box-shadow: 0 0 10px #ff5d6c;
+  box-shadow:
+    0 0 10px #ff5d6c;
 }
 
 .metric-card > strong {
@@ -268,22 +294,28 @@ button {
   margin: 15px 0 0;
 
   color: #5f798d;
+
   font-size: 11px;
 }
 
 .health-online {
   color: #55d6a4;
+
   font-size: 27px !important;
 }
 
 .health-offline {
   color: #ff5d6c;
+
   font-size: 27px !important;
 }
 
 .risk-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
   gap: 14px;
 
   margin-bottom: 16px;
@@ -291,21 +323,25 @@ button {
 
 .risk-card {
   min-height: 100px;
+
   padding: 20px;
 
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 
   border: 1px solid #1d3140;
   border-radius: 10px;
 
-  background: rgba(10, 25, 35, 0.86);
+  background:
+    rgba(10, 25, 35, 0.86);
 }
 
 .risk-card span {
   font-size: 11px;
   font-weight: 800;
+
   letter-spacing: 1px;
 }
 
@@ -335,17 +371,22 @@ button {
 
 .content-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+
+  grid-template-columns:
+    1.1fr 0.9fr;
+
   gap: 16px;
 }
 
 .panel-card {
   min-height: 360px;
+
   padding: 24px;
 }
 
 .section-header {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 
@@ -362,8 +403,12 @@ button {
   height: 270px;
 
   display: grid;
-  grid-template-columns: 1fr 0.8fr;
+
+  grid-template-columns:
+    1fr 0.8fr;
+
   align-items: center;
+
   gap: 25px;
 }
 
@@ -375,10 +420,13 @@ button {
 
 .chart-center {
   position: absolute;
+
   inset: 0;
 
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
 
@@ -393,12 +441,15 @@ button {
   margin-top: 3px;
 
   color: #71899a;
+
   font-size: 11px;
+
   text-transform: uppercase;
 }
 
 .legend {
   display: flex;
+
   flex-direction: column;
 }
 
@@ -406,18 +457,23 @@ button {
   padding: 11px 0;
 
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 
-  border-bottom: 1px solid #172c3a;
+  border-bottom:
+    1px solid #172c3a;
 }
 
 .legend-row div {
   display: flex;
+
   align-items: center;
+
   gap: 9px;
 
   color: #9caeba;
+
   font-size: 12px;
 }
 
@@ -437,7 +493,9 @@ button {
   min-height: 250px;
 
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
 
@@ -457,7 +515,9 @@ button {
   border-radius: 50%;
 
   color: #55d6a4;
-  background: rgba(85, 214, 164, 0.08);
+
+  background:
+    rgba(85, 214, 164, 0.08);
 
   font-size: 22px;
 }
@@ -466,20 +526,24 @@ button {
   margin: 0 0 7px;
 
   color: #cce7dc;
+
   font-size: 16px;
 }
 
 .healthy-state p {
   width: min(340px, 100%);
+
   margin: 0;
 
   color: #688194;
+
   font-size: 12px;
   line-height: 1.6;
 }
 
 .risk-list {
   display: flex;
+
   flex-direction: column;
 }
 
@@ -487,26 +551,35 @@ button {
   padding: 16px 0;
 
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 
-  border-bottom: 1px solid #172c3a;
+  border-bottom:
+    1px solid #172c3a;
 }
 
-.risk-row > div:first-child {
+.risk-row
+> div:first-child {
   display: flex;
+
   flex-direction: column;
+
   gap: 4px;
 }
 
-.risk-row > div:first-child span {
+.risk-row
+> div:first-child span {
   color: #688194;
+
   font-size: 10px;
 }
 
 .risk-row-right {
   display: flex;
+
   align-items: center;
+
   gap: 15px;
 }
 
@@ -517,52 +590,376 @@ button {
 
   font-size: 9px;
   font-weight: 800;
+
   letter-spacing: 0.8px;
 }
 
 .risk-pill.warning {
   color: #f2c94c;
-  background: rgba(242, 201, 76, 0.1);
+
+  background:
+    rgba(242, 201, 76, 0.1);
 }
 
 .risk-pill.high {
   color: #ff8a4c;
-  background: rgba(255, 138, 76, 0.1);
+
+  background:
+    rgba(255, 138, 76, 0.1);
 }
 
 .risk-pill.critical {
   color: #ff5d6c;
-  background: rgba(255, 93, 108, 0.1);
+
+  background:
+    rgba(255, 93, 108, 0.1);
 }
+
+
+/* ========================================================= */
+/* PANEL MONITOR */
+/* ========================================================= */
+
+.panel-monitor {
+  margin-top: 16px;
+
+  padding: 24px;
+}
+
+.monitor-heading {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 20px;
+}
+
+.monitor-heading h3 {
+  margin: 0;
+
+  font-size: 20px;
+}
+
+.monitor-heading
+> div:first-child
+> p:last-child {
+  margin: 7px 0 0;
+
+  color: #6f8798;
+
+  font-size: 12px;
+}
+
+.panel-count {
+  display: flex;
+
+  align-items: baseline;
+
+  gap: 6px;
+
+  color: #6c8496;
+
+  font-size: 11px;
+}
+
+.panel-count strong {
+  color: #dce8ef;
+
+  font-size: 17px;
+}
+
+.monitor-controls {
+  display: grid;
+
+  grid-template-columns:
+    minmax(220px, 1fr)
+    190px;
+
+  gap: 12px;
+
+  margin-bottom: 18px;
+}
+
+.monitor-controls input,
+.monitor-controls select {
+  height: 42px;
+
+  padding: 0 13px;
+
+  border: 1px solid #243e50;
+  border-radius: 8px;
+
+  outline: none;
+
+  color: #d8e5ed;
+
+  background: #081a25;
+}
+
+.monitor-controls input::placeholder {
+  color: #526d7f;
+}
+
+.monitor-controls input:focus,
+.monitor-controls select:focus {
+  border-color: #3283a0;
+}
+
+.table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border: 1px solid #172d3b;
+  border-radius: 9px;
+}
+
+.panel-table {
+  width: 100%;
+  min-width: 1100px;
+
+  border-collapse: collapse;
+
+  background: #071720;
+}
+
+.panel-table th {
+  padding: 13px 14px;
+
+  text-align: left;
+
+  color: #617b8c;
+
+  background: #0a1d28;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+.panel-table td {
+  padding: 13px 14px;
+
+  border-top:
+    1px solid #132936;
+
+  color: #9fb1bd;
+
+  font-size: 11px;
+
+  white-space: nowrap;
+}
+
+.panel-table tbody tr {
+  transition:
+    background 0.15s ease;
+}
+
+.panel-table tbody tr:hover {
+  background:
+    rgba(35, 87, 108, 0.13);
+}
+
+.panel-table
+tbody tr.alarm-row {
+  background:
+    rgba(255, 93, 108, 0.055);
+}
+
+.panel-id-cell {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+.panel-id-cell strong {
+  color: #dce8ef;
+}
+
+.panel-state-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+}
+
+.panel-state-dot.normal {
+  background: #55d6a4;
+}
+
+.panel-state-dot.warning {
+  background: #f2c94c;
+}
+
+.panel-state-dot.high {
+  background: #ff8a4c;
+}
+
+.panel-state-dot.critical {
+  background: #ff5d6c;
+
+  box-shadow:
+    0 0 8px #ff5d6c;
+}
+
+.panel-state-dot.unknown {
+  background: #60798b;
+}
+
+.table-status {
+  display: inline-flex;
+
+  padding: 5px 8px;
+
+  border-radius: 6px;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+}
+
+.table-status.normal {
+  color: #55d6a4;
+
+  background:
+    rgba(85, 214, 164, 0.08);
+}
+
+.table-status.warning {
+  color: #f2c94c;
+
+  background:
+    rgba(242, 201, 76, 0.08);
+}
+
+.table-status.high {
+  color: #ff8a4c;
+
+  background:
+    rgba(255, 138, 76, 0.08);
+}
+
+.table-status.critical {
+  color: #ff5d6c;
+
+  background:
+    rgba(255, 93, 108, 0.1);
+}
+
+.table-status.unknown {
+  color: #7b91a1;
+
+  background:
+    rgba(96, 121, 139, 0.1);
+}
+
+.risk-score-cell {
+  color: #dce8ef !important;
+
+  font-weight: 700;
+}
+
+.quality-pill {
+  display: inline-flex;
+
+  padding: 4px 7px;
+
+  border-radius: 5px;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.6px;
+}
+
+.quality-pill.good {
+  color: #55d6a4;
+
+  background:
+    rgba(85, 214, 164, 0.08);
+}
+
+.quality-pill.degraded {
+  color: #f2c94c;
+
+  background:
+    rgba(242, 201, 76, 0.08);
+}
+
+.quality-pill.bad {
+  color: #ff5d6c;
+
+  background:
+    rgba(255, 93, 108, 0.08);
+}
+
+.quality-pill.unknown {
+  color: #71899a;
+}
+
+.last-seen-cell {
+  color: #60798b !important;
+}
+
+.no-panel-results {
+  height: 120px;
+
+  text-align: center !important;
+
+  color: #60798b !important;
+}
+
+
+/* ========================================================= */
 
 .dashboard-footer {
   margin-top: 18px;
+
   padding: 16px 3px;
 
   display: flex;
+
   justify-content: space-between;
 
   color: #536c7e;
 
   font-size: 10px;
+
   letter-spacing: 0.4px;
 }
 
+
 @media (max-width: 1000px) {
+
   .primary-grid {
     grid-template-columns: 1fr;
   }
 
   .risk-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
   }
 
   .content-grid {
     grid-template-columns: 1fr;
   }
+
 }
 
+
 @media (max-width: 650px) {
+
   .topbar {
     padding: 15px 20px;
   }
@@ -572,11 +969,13 @@ button {
   }
 
   .dashboard {
-    width: calc(100% - 30px);
+    width:
+      calc(100% - 30px);
   }
 
   .intro {
     align-items: flex-start;
+
     flex-direction: column;
   }
 
@@ -586,11 +985,24 @@ button {
 
   .risk-chart-layout {
     height: auto;
+
+    grid-template-columns: 1fr;
+  }
+
+  .monitor-heading {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .monitor-controls {
     grid-template-columns: 1fr;
   }
 
   .dashboard-footer {
     flex-direction: column;
+
     gap: 8px;
   }
+
 }

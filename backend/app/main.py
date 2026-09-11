@@ -599,3 +599,169 @@ def get_dashboard_summary(
         "system_status": "ONLINE",
         "generated_at": datetime.now(timezone.utc),
     }
+
+@app.get("/dashboard/panels")
+def get_dashboard_panels(
+    status: str | None = None,
+    search: str | None = None,
+    limit: int = 200,
+    db: Session = Depends(get_db)
+):
+    limit = max(1, min(limit, 500))
+
+    panels = (
+        db.query(Panel)
+        .order_by(Panel.panel_id)
+        .all()
+    )
+
+    # ---------------------------------------------------------
+    # Latest risk record for every panel
+    # ---------------------------------------------------------
+
+    latest_risk_ids = (
+        db.query(
+            func.max(RiskAssessment.id).label("latest_id")
+        )
+        .group_by(RiskAssessment.panel_id)
+        .subquery()
+    )
+
+    latest_risks = (
+        db.query(RiskAssessment)
+        .filter(
+            RiskAssessment.id.in_(
+                db.query(latest_risk_ids.c.latest_id)
+            )
+        )
+        .all()
+    )
+
+    risk_by_panel = {
+        risk.panel_id: risk
+        for risk in latest_risks
+    }
+
+    # ---------------------------------------------------------
+    # Open alarms
+    # ---------------------------------------------------------
+
+    open_alarms = (
+        db.query(Alarm)
+        .filter(Alarm.status == "OPEN")
+        .all()
+    )
+
+    alarm_by_panel = {
+        alarm.panel_id: alarm
+        for alarm in open_alarms
+    }
+
+    # ---------------------------------------------------------
+    # Build dashboard rows
+    # ---------------------------------------------------------
+
+    rows = []
+
+    for panel in panels:
+        risk = risk_by_panel.get(panel.panel_id)
+        alarm = alarm_by_panel.get(panel.panel_id)
+
+        if risk is None:
+            risk_score = 0
+            risk_status = "UNKNOWN"
+            primary_risk = "NO_DATA"
+        else:
+            risk_score = risk.risk_score
+            risk_status = risk.status
+            primary_risk = risk.primary_risk
+
+        row = {
+            "panel_id": panel.panel_id,
+            "status": risk_status,
+            "risk_score": risk_score,
+            "primary_risk": primary_risk,
+
+            "current_a": panel.current_a,
+            "cable_temperature_c": (
+                panel.cable_temperature_c
+            ),
+            "ambient_temperature_c": (
+                panel.ambient_temperature_c
+            ),
+            "humidity_pct": panel.humidity_pct,
+            "pd_index": panel.pd_index,
+            "arc_detected": panel.arc_detected,
+            "data_quality": panel.data_quality,
+
+            "last_seen": panel.last_seen,
+
+            "has_open_alarm": alarm is not None,
+            "alarm_id": (
+                alarm.id
+                if alarm is not None
+                else None
+            ),
+            "alarm_severity": (
+                alarm.severity
+                if alarm is not None
+                else None
+            ),
+        }
+
+        rows.append(row)
+
+    # ---------------------------------------------------------
+    # Optional filtering
+    # ---------------------------------------------------------
+
+    if status:
+        requested_status = status.upper()
+
+        rows = [
+            row
+            for row in rows
+            if row["status"] == requested_status
+        ]
+
+    if search:
+        search_value = search.strip().lower()
+
+        rows = [
+            row
+            for row in rows
+            if search_value
+            in row["panel_id"].lower()
+        ]
+
+    # ---------------------------------------------------------
+    # Highest-risk panels first
+    # ---------------------------------------------------------
+
+    status_priority = {
+        "CRITICAL": 4,
+        "HIGH": 3,
+        "WARNING": 2,
+        "NORMAL": 1,
+        "UNKNOWN": 0,
+    }
+
+    rows.sort(
+        key=lambda row: (
+            status_priority.get(
+                row["status"],
+                -1
+            ),
+            row["risk_score"],
+            row["panel_id"],
+        ),
+        reverse=True
+    )
+
+    rows = rows[:limit]
+
+    return {
+        "count": len(rows),
+        "panels": rows,
+        "generated_at": datetime.now(timezone.utc),
+    }
