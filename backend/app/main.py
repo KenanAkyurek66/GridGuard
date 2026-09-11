@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import func
 
 from backend.app.database import Base, engine, get_db
 from backend.app.models import (
@@ -509,4 +510,92 @@ def get_panel_risk_history(
             }
             for record in records
         ]
+    }
+
+@app.get("/dashboard/summary")
+def get_dashboard_summary(
+    db: Session = Depends(get_db)
+):
+    connected_panels = db.query(Panel).count()
+
+    # Her panel için en son oluşturulan risk kaydının ID'sini bul.
+    latest_risk_ids = (
+        db.query(
+            func.max(RiskAssessment.id).label("latest_id")
+        )
+        .group_by(RiskAssessment.panel_id)
+        .subquery()
+    )
+
+    latest_risks = (
+        db.query(RiskAssessment)
+        .filter(
+            RiskAssessment.id.in_(
+                db.query(latest_risk_ids.c.latest_id)
+            )
+        )
+        .all()
+    )
+
+    distribution = {
+        "NORMAL": 0,
+        "WARNING": 0,
+        "HIGH": 0,
+        "CRITICAL": 0,
+        "UNKNOWN": 0,
+    }
+
+    for risk in latest_risks:
+        if risk.status in distribution:
+            distribution[risk.status] += 1
+        else:
+            distribution["UNKNOWN"] += 1
+
+    panels_with_risk = len(latest_risks)
+
+    # Hiç risk analizi bulunmayan kayıtlı panolar.
+    distribution["UNKNOWN"] += max(
+        connected_panels - panels_with_risk,
+        0
+    )
+
+    active_alarms = (
+        db.query(Alarm)
+        .filter(Alarm.status == "OPEN")
+        .count()
+    )
+
+    highest_risk_records = sorted(
+        latest_risks,
+        key=lambda item: (
+            item.risk_score,
+            item.id
+        ),
+        reverse=True
+    )[:5]
+
+    highest_risk_panels = [
+        {
+            "panel_id": record.panel_id,
+            "risk_score": record.risk_score,
+            "status": record.status,
+            "primary_risk": record.primary_risk,
+            "timestamp": record.timestamp,
+        }
+        for record in highest_risk_records
+    ]
+
+    return {
+        "connected_panels": connected_panels,
+        "risk_distribution": {
+            "normal": distribution["NORMAL"],
+            "warning": distribution["WARNING"],
+            "high": distribution["HIGH"],
+            "critical": distribution["CRITICAL"],
+            "unknown": distribution["UNKNOWN"],
+        },
+        "active_alarms": active_alarms,
+        "highest_risk_panels": highest_risk_panels,
+        "system_status": "ONLINE",
+        "generated_at": datetime.now(timezone.utc),
     }

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import requests
 
 
-PANEL_ID = "LV-101"
+PANEL_ID = "LV-050"
 
 TELEMETRY_URL = "http://127.0.0.1:8000/telemetry"
 RISK_URL = f"http://127.0.0.1:8000/panels/{PANEL_ID}/risk"
