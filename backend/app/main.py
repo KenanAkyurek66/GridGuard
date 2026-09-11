@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from backend.app.database import Base, engine, get_db
 from backend.app.models import Panel, Telemetry
 from backend.app.schemas import TelemetryData
+from risk_engine.engine import evaluate_risk
 
 
 Base.metadata.create_all(bind=engine)
@@ -14,7 +15,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="GridGuard API",
     description="GridGuard Edge Monitoring and Early Warning System",
-    version="0.2.0"
+    version="0.3.0"
 )
 
 
@@ -23,7 +24,7 @@ def root():
     return {
         "service": "GridGuard API",
         "status": "running",
-        "version": "0.2.0"
+        "version": "0.3.0"
     }
 
 
@@ -193,4 +194,63 @@ def get_panel_telemetry(
             }
             for record in records
         ]
+    }
+
+
+@app.get("/panels/{panel_id}/risk")
+def get_panel_risk(
+    panel_id: str,
+    limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    panel = (
+        db.query(Panel)
+        .filter(Panel.panel_id == panel_id)
+        .first()
+    )
+
+    if panel is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Panel not found"
+        )
+
+    limit = max(3, min(limit, 100))
+
+    records = (
+        db.query(Telemetry)
+        .filter(Telemetry.panel_id == panel_id)
+        .order_by(Telemetry.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
+
+    if not records:
+        raise HTTPException(
+            status_code=404,
+            detail="No telemetry history available for this panel"
+        )
+
+    # Veritabanından yeni -> eski geliyor.
+    # Risk Engine eski -> yeni bekliyor.
+    records.reverse()
+
+    history = [
+        {
+            "current_a": record.current_a,
+            "cable_temperature_c": record.cable_temperature_c,
+            "ambient_temperature_c": record.ambient_temperature_c,
+            "humidity_pct": record.humidity_pct,
+            "pd_index": record.pd_index,
+            "arc_detected": record.arc_detected
+        }
+        for record in records
+    ]
+
+    risk_result = evaluate_risk(history)
+
+    return {
+        "panel_id": panel_id,
+        "analyzed_points": len(history),
+        **risk_result
     }
