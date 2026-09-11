@@ -114,110 +114,111 @@ class Telemetry(Base):
         nullable=False
     )
 
-    class RiskAssessment(Base):
-        __tablename__ = "risk_assessments"
 
-        id: Mapped[int] = mapped_column(
-            Integer,
-            primary_key=True,
-            autoincrement=True
-        )
+class RiskAssessment(Base):
+    __tablename__ = "risk_assessments"
 
-        panel_id: Mapped[str] = mapped_column(
-            String(50),
-            index=True,
-            nullable=False
-        )
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
 
-        timestamp: Mapped[DateTime] = mapped_column(
-            DateTime(timezone=True),
-            index=True,
-            nullable=False
-        )
+    panel_id: Mapped[str] = mapped_column(
+        String(50),
+        index=True,
+        nullable=False
+    )
 
-        risk_score: Mapped[int] = mapped_column(
-            Integer,
-            nullable=False
-        )
+    timestamp: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        index=True,
+        nullable=False
+    )
 
-        status: Mapped[str] = mapped_column(
-            String(20),
-            nullable=False
-        )
+    risk_score: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False
+    )
 
-        primary_risk: Mapped[str] = mapped_column(
-            String(50),
-            nullable=False
-        )
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False
+    )
 
-        causes: Mapped[list] = mapped_column(
-            JSON,
-            nullable=False
-        )
+    primary_risk: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False
+    )
 
-        component_scores: Mapped[dict | None] = mapped_column(
-            JSON,
-            nullable=True
-        )
+    causes: Mapped[list] = mapped_column(
+        JSON,
+        nullable=False
+    )
 
-        metrics: Mapped[dict | None] = mapped_column(
-            JSON,
-            nullable=True
-        )
+    component_scores: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True
+    )
+
+    metrics: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True
+    )
 
 
-    class Alarm(Base):
-        __tablename__ = "alarms"
+class Alarm(Base):
+    __tablename__ = "alarms"
 
-        id: Mapped[int] = mapped_column(
-            Integer,
-            primary_key=True,
-            autoincrement=True
-        )
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
 
-        panel_id: Mapped[str] = mapped_column(
-            String(50),
-            index=True,
-            nullable=False
-        )
+    panel_id: Mapped[str] = mapped_column(
+        String(50),
+        index=True,
+        nullable=False
+    )
 
-        opened_at: Mapped[DateTime] = mapped_column(
-            DateTime(timezone=True),
-            nullable=False
-        )
+    opened_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False
+    )
 
-        last_seen_at: Mapped[DateTime] = mapped_column(
-            DateTime(timezone=True),
-            nullable=False
-        )
+    last_seen_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False
+    )
 
-        resolved_at: Mapped[DateTime | None] = mapped_column(
-            DateTime(timezone=True),
-            nullable=True
-        )
+    resolved_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
 
-        severity: Mapped[str] = mapped_column(
-            String(20),
-            nullable=False
-        )
+    severity: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False
+    )
 
-        primary_risk: Mapped[str] = mapped_column(
-            String(50),
-            nullable=False
-        )
+    primary_risk: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False
+    )
 
-        risk_score: Mapped[int] = mapped_column(
-            Integer,
-            nullable=False
-        )
+    risk_score: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False
+    )
 
-        message: Mapped[str] = mapped_column(
-            String(500),
-            nullable=False
-        )
+    message: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False
+    )
 
-        status: Mapped[str] = mapped_column(
-            String(20),
-            nullable=False,
-            default="OPEN"
-        )
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="OPEN"
+    )

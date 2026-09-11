@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.app.database import Base, engine, get_db
-from backend.app.models import Panel, Telemetry
+from backend.app.models import Panel, RiskAssessment, Telemetry
 from backend.app.schemas import TelemetryData
 from risk_engine.engine import evaluate_risk
 
@@ -15,8 +15,37 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="GridGuard API",
     description="GridGuard Edge Monitoring and Early Warning System",
-    version="0.3.0"
+    version="0.4.0"
 )
+
+
+def build_history(
+    db: Session,
+    panel_id: str,
+    limit: int = 20
+) -> list[dict]:
+    records = (
+        db.query(Telemetry)
+        .filter(Telemetry.panel_id == panel_id)
+        .order_by(Telemetry.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
+
+    # Risk Engine oldest -> newest expects.
+    records.reverse()
+
+    return [
+        {
+            "current_a": record.current_a,
+            "cable_temperature_c": record.cable_temperature_c,
+            "ambient_temperature_c": record.ambient_temperature_c,
+            "humidity_pct": record.humidity_pct,
+            "pd_index": record.pd_index,
+            "arc_detected": record.arc_detected
+        }
+        for record in records
+    ]
 
 
 @app.get("/")
@@ -24,7 +53,7 @@ def root():
     return {
         "service": "GridGuard API",
         "status": "running",
-        "version": "0.3.0"
+        "version": "0.4.0"
     }
 
 
@@ -45,6 +74,10 @@ def receive_telemetry(
 ):
     received_at = datetime.now(timezone.utc)
 
+    # ---------------------------------------------------------
+    # 1. Raw telemetry record
+    # ---------------------------------------------------------
+
     telemetry_record = Telemetry(
         panel_id=data.panel_id,
         timestamp=data.timestamp,
@@ -59,6 +92,10 @@ def receive_telemetry(
     )
 
     db.add(telemetry_record)
+
+    # ---------------------------------------------------------
+    # 2. Latest panel state
+    # ---------------------------------------------------------
 
     panel = (
         db.query(Panel)
@@ -83,12 +120,44 @@ def receive_telemetry(
     panel.arc_detected = data.arc_detected
     panel.data_quality = data.data_quality.value
 
+    # Telemetry must exist in DB before history query.
+    db.commit()
+
+    # ---------------------------------------------------------
+    # 3. Automatic risk analysis
+    # ---------------------------------------------------------
+
+    history = build_history(
+        db=db,
+        panel_id=data.panel_id,
+        limit=20
+    )
+
+    risk_result = evaluate_risk(history)
+
+    risk_record = RiskAssessment(
+        panel_id=data.panel_id,
+        timestamp=received_at,
+        risk_score=risk_result["risk_score"],
+        status=risk_result["status"],
+        primary_risk=risk_result["primary_risk"],
+        causes=risk_result["causes"],
+        component_scores=risk_result.get(
+            "component_scores"
+        ),
+        metrics=risk_result.get(
+            "metrics"
+        )
+    )
+
+    db.add(risk_record)
     db.commit()
 
     return {
         "status": "accepted",
         "received_at": received_at,
-        "telemetry": data
+        "telemetry": data,
+        "risk": risk_result
     }
 
 
@@ -217,35 +286,17 @@ def get_panel_risk(
 
     limit = max(3, min(limit, 100))
 
-    records = (
-        db.query(Telemetry)
-        .filter(Telemetry.panel_id == panel_id)
-        .order_by(Telemetry.timestamp.desc())
-        .limit(limit)
-        .all()
+    history = build_history(
+        db=db,
+        panel_id=panel_id,
+        limit=limit
     )
 
-    if not records:
+    if not history:
         raise HTTPException(
             status_code=404,
             detail="No telemetry history available for this panel"
         )
-
-    # Veritabanından yeni -> eski geliyor.
-    # Risk Engine eski -> yeni bekliyor.
-    records.reverse()
-
-    history = [
-        {
-            "current_a": record.current_a,
-            "cable_temperature_c": record.cable_temperature_c,
-            "ambient_temperature_c": record.ambient_temperature_c,
-            "humidity_pct": record.humidity_pct,
-            "pd_index": record.pd_index,
-            "arc_detected": record.arc_detected
-        }
-        for record in records
-    ]
 
     risk_result = evaluate_risk(history)
 
