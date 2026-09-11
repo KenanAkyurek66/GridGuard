@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, DateTime, Float, Integer, String
+from sqlalchemy import Boolean, DateTime, Float, Integer, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.database import Base
@@ -113,3 +113,111 @@ class Telemetry(Base):
         String(20),
         nullable=False
     )
+
+    class RiskAssessment(Base):
+        __tablename__ = "risk_assessments"
+
+        id: Mapped[int] = mapped_column(
+            Integer,
+            primary_key=True,
+            autoincrement=True
+        )
+
+        panel_id: Mapped[str] = mapped_column(
+            String(50),
+            index=True,
+            nullable=False
+        )
+
+        timestamp: Mapped[DateTime] = mapped_column(
+            DateTime(timezone=True),
+            index=True,
+            nullable=False
+        )
+
+        risk_score: Mapped[int] = mapped_column(
+            Integer,
+            nullable=False
+        )
+
+        status: Mapped[str] = mapped_column(
+            String(20),
+            nullable=False
+        )
+
+        primary_risk: Mapped[str] = mapped_column(
+            String(50),
+            nullable=False
+        )
+
+        causes: Mapped[list] = mapped_column(
+            JSON,
+            nullable=False
+        )
+
+        component_scores: Mapped[dict | None] = mapped_column(
+            JSON,
+            nullable=True
+        )
+
+        metrics: Mapped[dict | None] = mapped_column(
+            JSON,
+            nullable=True
+        )
+
+
+    class Alarm(Base):
+        __tablename__ = "alarms"
+
+        id: Mapped[int] = mapped_column(
+            Integer,
+            primary_key=True,
+            autoincrement=True
+        )
+
+        panel_id: Mapped[str] = mapped_column(
+            String(50),
+            index=True,
+            nullable=False
+        )
+
+        opened_at: Mapped[DateTime] = mapped_column(
+            DateTime(timezone=True),
+            nullable=False
+        )
+
+        last_seen_at: Mapped[DateTime] = mapped_column(
+            DateTime(timezone=True),
+            nullable=False
+        )
+
+        resolved_at: Mapped[DateTime | None] = mapped_column(
+            DateTime(timezone=True),
+            nullable=True
+        )
+
+        severity: Mapped[str] = mapped_column(
+            String(20),
+            nullable=False
+        )
+
+        primary_risk: Mapped[str] = mapped_column(
+            String(50),
+            nullable=False
+        )
+
+        risk_score: Mapped[int] = mapped_column(
+            Integer,
+            nullable=False
+        )
+
+        message: Mapped[str] = mapped_column(
+            String(500),
+            nullable=False
+        )
+
+        status: Mapped[str] = mapped_column(
+            String(20),
+            nullable=False,
+            default="OPEN"
+        )
