@@ -273,6 +273,28 @@ def evaluate_risk(history: list[dict]) -> dict:
         _clamp(risk_score, 0, 100)
     )
 
+    # ---------------------------------------------------------
+    # SAFETY OVERRIDES
+    # ---------------------------------------------------------
+    # These thresholds are prototype/demo configuration values.
+    # In production they must be calibrated per asset and site.
+
+    severe_thermal_event = (
+        cable_temp is not None
+        and thermal_delta is not None
+        and cable_temp >= 80
+        and thermal_delta >= 40
+        and cable_temp_rise >= 20
+    )
+
+    if severe_thermal_event:
+        risk_score = max(risk_score, 75)
+
+        if "Severe thermal escalation pattern detected." not in causes:
+            causes.append(
+                "Severe thermal escalation pattern detected."
+            )
+
     if risk_score >= 75:
         status = "CRITICAL"
 
