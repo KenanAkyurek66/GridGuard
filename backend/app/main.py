@@ -407,3 +407,94 @@ def get_panel_risk(
         "analyzed_points": len(history),
         **risk_result
     }
+
+@app.get("/alarms")
+def get_alarms(
+    status: str | None = None,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    limit = max(1, min(limit, 500))
+
+    query = db.query(Alarm)
+
+    if status is not None:
+        query = query.filter(
+            Alarm.status == status.upper()
+        )
+
+    alarms = (
+        query
+        .order_by(Alarm.opened_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "count": len(alarms),
+        "alarms": [
+            {
+                "id": alarm.id,
+                "panel_id": alarm.panel_id,
+                "opened_at": alarm.opened_at,
+                "last_seen_at": alarm.last_seen_at,
+                "resolved_at": alarm.resolved_at,
+                "severity": alarm.severity,
+                "primary_risk": alarm.primary_risk,
+                "risk_score": alarm.risk_score,
+                "message": alarm.message,
+                "status": alarm.status
+            }
+            for alarm in alarms
+        ]
+    }
+
+
+@app.get("/panels/{panel_id}/risks")
+def get_panel_risk_history(
+    panel_id: str,
+    limit: int = 50,
+    db: Session = Depends(get_db)
+):
+    panel = (
+        db.query(Panel)
+        .filter(Panel.panel_id == panel_id)
+        .first()
+    )
+
+    if panel is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Panel not found"
+        )
+
+    limit = max(1, min(limit, 500))
+
+    records = (
+        db.query(RiskAssessment)
+        .filter(
+            RiskAssessment.panel_id == panel_id
+        )
+        .order_by(
+            RiskAssessment.timestamp.desc()
+        )
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "panel_id": panel_id,
+        "count": len(records),
+        "risks": [
+            {
+                "timestamp": record.timestamp,
+                "risk_score": record.risk_score,
+                "status": record.status,
+                "primary_risk": record.primary_risk,
+                "causes": record.causes,
+                "component_scores": record.component_scores,
+                "metrics": record.metrics
+            }
+            for record in records
+        ]
+    }
