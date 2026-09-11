@@ -17,6 +17,31 @@ def _add_cause(
         causes.append(message)
 
 
+def _rise_from_recent_low(
+    values: list[float]
+) -> float:
+    """
+    Measure how far the latest value has risen from the lowest
+    earlier value inside the supplied history window.
+
+    This is more robust than comparing only the first and last
+    samples because the backend history window may contain data
+    from multiple demo/scenario runs.
+    """
+    if len(values) < 2:
+        return 0.0
+
+    latest_value = values[-1]
+    previous_values = values[:-1]
+
+    if not previous_values:
+        return 0.0
+
+    baseline_value = min(previous_values)
+
+    return latest_value - baseline_value
+
+
 def evaluate_risk(history: list[dict]) -> dict:
     """
     GridGuard Explainable Risk Engine.
@@ -281,21 +306,17 @@ def evaluate_risk(history: list[dict]) -> dict:
         ) is not None
     ]
 
-    if len(valid_cable_temperatures) >= 2:
-        cable_temp_rise = (
-            valid_cable_temperatures[-1]
-            - valid_cable_temperatures[0]
-        )
+    cable_temp_rise = _rise_from_recent_low(
+        valid_cable_temperatures
+    )
 
-    if len(valid_ambient_temperatures) >= 2:
-        ambient_temp_rise = (
-            valid_ambient_temperatures[-1]
-            - valid_ambient_temperatures[0]
-        )
+    ambient_temp_rise = _rise_from_recent_low(
+        valid_ambient_temperatures
+    )
 
     if (
         cable_temp_rise >= 15
-        and ambient_temp_rise < 5
+        and abs(ambient_temp_rise) < 5
     ):
         thermal_score += 10
 
@@ -402,9 +423,8 @@ def evaluate_risk(history: list[dict]) -> dict:
     ]
 
     if len(valid_pd_values) >= 3:
-        pd_change = (
-            valid_pd_values[-1]
-            - valid_pd_values[0]
+        pd_change = _rise_from_recent_low(
+            valid_pd_values
         )
 
         if pd_change >= 25:
