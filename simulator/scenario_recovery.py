@@ -10,41 +10,21 @@ TELEMETRY_URL = "http://127.0.0.1:8000/telemetry"
 RISK_URL = f"http://127.0.0.1:8000/panels/{PANEL_ID}/risk"
 
 
-scenario_steps = [
+normal_steps = [
     {
-        "current_a": 320,
-        "cable_temperature_c": 45,
-        "ambient_temperature_c": 31
+        "current_a": 315.0,
+        "cable_temperature_c": 46.0,
+        "ambient_temperature_c": 31.0,
     },
     {
-        "current_a": 340,
-        "cable_temperature_c": 48,
-        "ambient_temperature_c": 31
+        "current_a": 305.0,
+        "cable_temperature_c": 45.0,
+        "ambient_temperature_c": 31.0,
     },
     {
-        "current_a": 370,
-        "cable_temperature_c": 54,
-        "ambient_temperature_c": 31
-    },
-    {
-        "current_a": 400,
-        "cable_temperature_c": 60,
-        "ambient_temperature_c": 31
-    },
-    {
-        "current_a": 435,
-        "cable_temperature_c": 68,
-        "ambient_temperature_c": 31
-    },
-    {
-        "current_a": 470,
-        "cable_temperature_c": 76,
-        "ambient_temperature_c": 31
-    },
-    {
-        "current_a": 500,
-        "cable_temperature_c": 82,
-        "ambient_temperature_c": 32
+        "current_a": 300.0,
+        "cable_temperature_c": 44.0,
+        "ambient_temperature_c": 30.0,
     }
 ]
 
@@ -70,6 +50,8 @@ def send_telemetry(step: dict):
 
     response.raise_for_status()
 
+    return response.json()
+
 
 def get_risk():
     response = requests.get(
@@ -84,16 +66,16 @@ def get_risk():
 
 def main():
     print("=" * 70)
-    print("GRIDGUARD - LOCAL OVERHEATING SCENARIO")
+    print("GRIDGUARD - RECOVERY SCENARIO")
     print(f"Target panel: {PANEL_ID}")
     print("=" * 70)
     print()
 
     for step_number, step in enumerate(
-        scenario_steps,
+        normal_steps,
         start=1
     ):
-        send_telemetry(step)
+        result = send_telemetry(step)
 
         time.sleep(0.3)
 
@@ -109,15 +91,15 @@ def main():
         print(
             f"         Risk: {risk['risk_score']}/100 | "
             f"Status: {risk['status']} | "
-            f"Primary: {risk['primary_risk']}"
+            f"Alarm action: {result.get('alarm')}"
         )
 
         print()
 
-        time.sleep(1.5)
+        time.sleep(1)
 
     print("=" * 70)
-    print("Scenario completed.")
+    print("Recovery scenario completed.")
     print("=" * 70)
 
 

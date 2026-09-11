@@ -1,8 +1,18 @@
+from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 
-DATABASE_URL = "sqlite:///./data/gridguard.db"
+# GridGuard project root
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+DB_PATH = DATA_DIR / "gridguard.db"
+
+DATABASE_URL = f"sqlite:///{DB_PATH.as_posix()}"
 
 
 engine = create_engine(

@@ -4,7 +4,12 @@ from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.app.database import Base, engine, get_db
-from backend.app.models import Panel, RiskAssessment, Telemetry
+from backend.app.models import (
+    Alarm,
+    Panel,
+    RiskAssessment,
+    Telemetry,
+)
 from backend.app.schemas import TelemetryData
 from risk_engine.engine import evaluate_risk
 
@@ -15,7 +20,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="GridGuard API",
     description="GridGuard Edge Monitoring and Early Warning System",
-    version="0.4.0"
+    version="0.5.0"
 )
 
 
@@ -32,10 +37,11 @@ def build_history(
         .all()
     )
 
-    # Risk Engine oldest -> newest expects.
+    # Database gives newest -> oldest.
+    # Risk Engine expects oldest -> newest.
     records.reverse()
 
-    return [
+    history = [
         {
             "current_a": record.current_a,
             "cable_temperature_c": record.cable_temperature_c,
@@ -47,18 +53,110 @@ def build_history(
         for record in records
     ]
 
+    return history
+
+
+def sync_alarm(
+    db: Session,
+    panel_id: str,
+    risk_result: dict,
+    timestamp: datetime
+) -> dict | None:
+
+    abnormal_statuses = {
+        "WARNING",
+        "HIGH",
+        "CRITICAL"
+    }
+
+    open_alarm = (
+        db.query(Alarm)
+        .filter(
+            Alarm.panel_id == panel_id,
+            Alarm.status == "OPEN"
+        )
+        .order_by(Alarm.opened_at.desc())
+        .first()
+    )
+
+    # NORMAL -> resolve an existing open alarm.
+    if risk_result["status"] == "NORMAL":
+        if open_alarm is not None:
+            open_alarm.status = "RESOLVED"
+            open_alarm.resolved_at = timestamp
+            open_alarm.last_seen_at = timestamp
+
+            db.commit()
+
+            return {
+                "action": "RESOLVED",
+                "alarm_id": open_alarm.id
+            }
+
+        return None
+
+    # WARNING / HIGH / CRITICAL
+    if risk_result["status"] in abnormal_statuses:
+
+        message = (
+            risk_result["causes"][0]
+            if risk_result["causes"]
+            else "GridGuard anomaly detected."
+        )
+
+        # No alarm yet -> open one.
+        if open_alarm is None:
+            new_alarm = Alarm(
+                panel_id=panel_id,
+                opened_at=timestamp,
+                last_seen_at=timestamp,
+                resolved_at=None,
+                severity=risk_result["status"],
+                primary_risk=risk_result["primary_risk"],
+                risk_score=risk_result["risk_score"],
+                message=message,
+                status="OPEN"
+            )
+
+            db.add(new_alarm)
+            db.commit()
+            db.refresh(new_alarm)
+
+            return {
+                "action": "OPENED",
+                "alarm_id": new_alarm.id
+            }
+
+        # Alarm already exists -> update the same alarm.
+        open_alarm.last_seen_at = timestamp
+        open_alarm.severity = risk_result["status"]
+        open_alarm.primary_risk = risk_result["primary_risk"]
+        open_alarm.risk_score = risk_result["risk_score"]
+        open_alarm.message = message
+
+        db.commit()
+
+        return {
+            "action": "UPDATED",
+            "alarm_id": open_alarm.id
+        }
+
+    return None
+
 
 @app.get("/")
 def root():
     return {
         "service": "GridGuard API",
         "status": "running",
-        "version": "0.4.0"
+        "version": "0.5.0"
     }
 
 
 @app.get("/health")
-def health_check(db: Session = Depends(get_db)):
+def health_check(
+    db: Session = Depends(get_db)
+):
     connected_panels = db.query(Panel).count()
 
     return {
@@ -74,10 +172,7 @@ def receive_telemetry(
 ):
     received_at = datetime.now(timezone.utc)
 
-    # ---------------------------------------------------------
-    # 1. Raw telemetry record
-    # ---------------------------------------------------------
-
+    # 1. Store raw telemetry.
     telemetry_record = Telemetry(
         panel_id=data.panel_id,
         timestamp=data.timestamp,
@@ -93,10 +188,7 @@ def receive_telemetry(
 
     db.add(telemetry_record)
 
-    # ---------------------------------------------------------
-    # 2. Latest panel state
-    # ---------------------------------------------------------
-
+    # 2. Update latest panel state.
     panel = (
         db.query(Panel)
         .filter(Panel.panel_id == data.panel_id)
@@ -120,13 +212,11 @@ def receive_telemetry(
     panel.arc_detected = data.arc_detected
     panel.data_quality = data.data_quality.value
 
-    # Telemetry must exist in DB before history query.
+    # Commit first so the new telemetry is available
+    # when build_history() queries the database.
     db.commit()
 
-    # ---------------------------------------------------------
-    # 3. Automatic risk analysis
-    # ---------------------------------------------------------
-
+    # 3. Automatically evaluate risk.
     history = build_history(
         db=db,
         panel_id=data.panel_id,
@@ -135,6 +225,7 @@ def receive_telemetry(
 
     risk_result = evaluate_risk(history)
 
+    # 4. Persist risk assessment.
     risk_record = RiskAssessment(
         panel_id=data.panel_id,
         timestamp=received_at,
@@ -153,16 +244,27 @@ def receive_telemetry(
     db.add(risk_record)
     db.commit()
 
+    # 5. Open/update/resolve alarm if necessary.
+    alarm_result = sync_alarm(
+        db=db,
+        panel_id=data.panel_id,
+        risk_result=risk_result,
+        timestamp=received_at
+    )
+
     return {
         "status": "accepted",
         "received_at": received_at,
         "telemetry": data,
-        "risk": risk_result
+        "risk": risk_result,
+        "alarm": alarm_result
     }
 
 
 @app.get("/panels")
-def get_panels(db: Session = Depends(get_db)):
+def get_panels(
+    db: Session = Depends(get_db)
+):
     panels = (
         db.query(Panel)
         .order_by(Panel.panel_id)
