@@ -17,6 +17,10 @@ import {
 
 import "./App.css";
 
+import PanelDetail, {
+  fetchPanelDetail,
+} from "./PanelDetail";
+
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
@@ -37,8 +41,7 @@ function App() {
   const [backendOnline, setBackendOnline] =
     useState(false);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   const [lastUpdate, setLastUpdate] =
     useState(null);
@@ -48,6 +51,26 @@ function App() {
 
   const [statusFilter, setStatusFilter] =
     useState("ALL");
+
+  const [
+    selectedPanelId,
+    setSelectedPanelId,
+  ] = useState(null);
+
+  const [
+    selectedPanelDetail,
+    setSelectedPanelDetail,
+  ] = useState(null);
+
+  const [
+    panelDetailLoading,
+    setPanelDetailLoading,
+  ] = useState(false);
+
+  const [
+    panelDetailError,
+    setPanelDetailError,
+  ] = useState(null);
 
 
   const loadDashboard = useCallback(async () => {
@@ -93,6 +116,44 @@ function App() {
   }, []);
 
 
+  const openPanelDetail = useCallback(
+    async (panelId) => {
+      setSelectedPanelId(panelId);
+
+      setSelectedPanelDetail(null);
+      setPanelDetailError(null);
+      setPanelDetailLoading(true);
+
+      try {
+        const data =
+          await fetchPanelDetail(panelId);
+
+        setSelectedPanelDetail(data);
+      } catch (error) {
+        console.error(
+          "Panel detail request failed:",
+          error
+        );
+
+        setPanelDetailError(
+          "Panel detail could not be loaded."
+        );
+      } finally {
+        setPanelDetailLoading(false);
+      }
+    },
+    []
+  );
+
+
+  const closePanelDetail = useCallback(() => {
+    setSelectedPanelId(null);
+    setSelectedPanelDetail(null);
+    setPanelDetailError(null);
+    setPanelDetailLoading(false);
+  }, []);
+
+
   useEffect(() => {
     loadDashboard();
 
@@ -103,6 +164,62 @@ function App() {
 
     return () => clearInterval(interval);
   }, [loadDashboard]);
+
+
+  useEffect(() => {
+    if (!selectedPanelId) {
+      return undefined;
+    }
+
+    const interval = setInterval(
+      async () => {
+        try {
+          const data =
+            await fetchPanelDetail(
+              selectedPanelId
+            );
+
+          setSelectedPanelDetail(data);
+          setPanelDetailError(null);
+        } catch (error) {
+          console.error(
+            "Panel detail refresh failed:",
+            error
+          );
+        }
+      },
+      5000
+    );
+
+    return () => clearInterval(interval);
+  }, [selectedPanelId]);
+
+
+  useEffect(() => {
+    function handleEscape(event) {
+      if (
+        event.key === "Escape" &&
+        selectedPanelId
+      ) {
+        closePanelDetail();
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleEscape
+    );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, [
+    selectedPanelId,
+    closePanelDetail,
+  ]);
 
 
   const distribution =
@@ -274,11 +391,13 @@ function App() {
         <div className="topbar-right">
 
           <div className="update-info">
+
             Last update
 
             <strong>
               {formatUpdateTime()}
             </strong>
+
           </div>
 
 
@@ -329,6 +448,7 @@ function App() {
           <button
             className="refresh-button"
             onClick={loadDashboard}
+            type="button"
           >
             Refresh Data
           </button>
@@ -402,9 +522,11 @@ function App() {
           <article className="metric-card">
 
             <div className="metric-header">
+
               <span>
                 System Health
               </span>
+
             </div>
 
             <strong
@@ -681,9 +803,15 @@ function App() {
                 {elevatedRiskPanels.map(
                   (panel) => (
 
-                    <div
-                      className="risk-row"
+                    <button
+                      className="risk-row risk-row-button"
                       key={panel.panel_id}
+                      onClick={() =>
+                        openPanelDetail(
+                          panel.panel_id
+                        )
+                      }
+                      type="button"
                     >
 
                       <div>
@@ -716,7 +844,7 @@ function App() {
 
                       </div>
 
-                    </div>
+                    </button>
 
                   )
                 )}
@@ -753,6 +881,7 @@ function App() {
 
 
             <div className="panel-count">
+
               Showing
 
               <strong>
@@ -760,6 +889,7 @@ function App() {
               </strong>
 
               panels
+
             </div>
 
           </div>
@@ -861,10 +991,15 @@ function App() {
 
                       <tr
                         key={panel.panel_id}
-                        className={
+                        className={`clickable-panel-row ${
                           panel.has_open_alarm
                             ? "alarm-row"
                             : ""
+                        }`}
+                        onClick={() =>
+                          openPanelDetail(
+                            panel.panel_id
+                          )
                         }
                       >
 
@@ -1000,6 +1135,16 @@ function App() {
         </footer>
 
       </main>
+
+
+      {selectedPanelId && (
+        <PanelDetail
+          detail={selectedPanelDetail}
+          loading={panelDetailLoading}
+          error={panelDetailError}
+          onClose={closePanelDetail}
+        />
+      )}
 
     </div>
   );

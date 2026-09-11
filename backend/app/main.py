@@ -765,3 +765,225 @@ def get_dashboard_panels(
         "panels": rows,
         "generated_at": datetime.now(timezone.utc),
     }
+
+@app.get("/dashboard/panels/{panel_id}/detail")
+def get_dashboard_panel_detail(
+    panel_id: str,
+    history_limit: int = 30,
+    db: Session = Depends(get_db)
+):
+    history_limit = max(
+        5,
+        min(history_limit, 200)
+    )
+
+    # ---------------------------------------------------------
+    # PANEL
+    # ---------------------------------------------------------
+
+    panel = (
+        db.query(Panel)
+        .filter(
+            Panel.panel_id == panel_id
+        )
+        .first()
+    )
+
+    if panel is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Panel not found"
+        )
+
+    # ---------------------------------------------------------
+    # LATEST RISK
+    # ---------------------------------------------------------
+
+    latest_risk = (
+        db.query(RiskAssessment)
+        .filter(
+            RiskAssessment.panel_id == panel_id
+        )
+        .order_by(
+            RiskAssessment.id.desc()
+        )
+        .first()
+    )
+
+    # ---------------------------------------------------------
+    # ACTIVE ALARM
+    # ---------------------------------------------------------
+
+    active_alarm = (
+        db.query(Alarm)
+        .filter(
+            Alarm.panel_id == panel_id,
+            Alarm.status == "OPEN"
+        )
+        .order_by(
+            Alarm.opened_at.desc()
+        )
+        .first()
+    )
+
+    # ---------------------------------------------------------
+    # TELEMETRY HISTORY
+    # ---------------------------------------------------------
+
+    telemetry_records = (
+        db.query(Telemetry)
+        .filter(
+            Telemetry.panel_id == panel_id
+        )
+        .order_by(
+            Telemetry.timestamp.desc()
+        )
+        .limit(history_limit)
+        .all()
+    )
+
+    # Graphs should be oldest -> newest.
+    telemetry_records.reverse()
+
+    telemetry_history = [
+        {
+            "timestamp": record.timestamp,
+            "current_a": record.current_a,
+            "cable_temperature_c": (
+                record.cable_temperature_c
+            ),
+            "ambient_temperature_c": (
+                record.ambient_temperature_c
+            ),
+            "humidity_pct": record.humidity_pct,
+            "pd_index": record.pd_index,
+            "arc_detected": record.arc_detected,
+            "data_quality": record.data_quality,
+        }
+        for record in telemetry_records
+    ]
+
+    # ---------------------------------------------------------
+    # RISK HISTORY
+    # ---------------------------------------------------------
+
+    risk_records = (
+        db.query(RiskAssessment)
+        .filter(
+            RiskAssessment.panel_id == panel_id
+        )
+        .order_by(
+            RiskAssessment.id.desc()
+        )
+        .limit(history_limit)
+        .all()
+    )
+
+    risk_records.reverse()
+
+    risk_history = [
+        {
+            "timestamp": record.timestamp,
+            "risk_score": record.risk_score,
+            "status": record.status,
+            "primary_risk": record.primary_risk,
+        }
+        for record in risk_records
+    ]
+
+    # ---------------------------------------------------------
+    # LATEST RISK DATA
+    # ---------------------------------------------------------
+
+    if latest_risk is None:
+        risk_data = {
+            "risk_score": 0,
+            "status": "UNKNOWN",
+            "primary_risk": "NO_DATA",
+            "causes": [
+                "No risk assessment available."
+            ],
+            "component_scores": {},
+            "metrics": {},
+        }
+
+    else:
+        risk_data = {
+            "risk_score": latest_risk.risk_score,
+            "status": latest_risk.status,
+            "primary_risk": (
+                latest_risk.primary_risk
+            ),
+            "causes": (
+                latest_risk.causes or []
+            ),
+            "component_scores": (
+                latest_risk.component_scores
+                or {}
+            ),
+            "metrics": (
+                latest_risk.metrics
+                or {}
+            ),
+        }
+
+    # ---------------------------------------------------------
+    # ACTIVE ALARM DATA
+    # ---------------------------------------------------------
+
+    if active_alarm is None:
+        alarm_data = None
+
+    else:
+        alarm_data = {
+            "id": active_alarm.id,
+            "severity": active_alarm.severity,
+            "primary_risk": (
+                active_alarm.primary_risk
+            ),
+            "risk_score": (
+                active_alarm.risk_score
+            ),
+            "message": active_alarm.message,
+            "status": active_alarm.status,
+            "opened_at": (
+                active_alarm.opened_at
+            ),
+            "last_seen_at": (
+                active_alarm.last_seen_at
+            ),
+        }
+
+    # ---------------------------------------------------------
+    # RESPONSE
+    # ---------------------------------------------------------
+
+    return {
+        "panel": {
+            "panel_id": panel.panel_id,
+            "last_seen": panel.last_seen,
+            "current_a": panel.current_a,
+            "cable_temperature_c": (
+                panel.cable_temperature_c
+            ),
+            "ambient_temperature_c": (
+                panel.ambient_temperature_c
+            ),
+            "humidity_pct": panel.humidity_pct,
+            "pd_index": panel.pd_index,
+            "arc_detected": panel.arc_detected,
+            "data_quality": panel.data_quality,
+        },
+
+        "risk": risk_data,
+
+        "active_alarm": alarm_data,
+
+        "telemetry_history": telemetry_history,
+
+        "risk_history": risk_history,
+
+        "generated_at": datetime.now(
+            timezone.utc
+        ),
+    }
