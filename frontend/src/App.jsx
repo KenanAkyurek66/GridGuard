@@ -91,6 +91,24 @@ function App() {
   ] = useState(null);
 
 
+  const scrollToSection =
+    useCallback((sectionId) => {
+      const section =
+        document.getElementById(
+          sectionId
+        );
+
+      if (!section) {
+        return;
+      }
+
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, []);
+
+
   const loadDashboard =
     useCallback(async () => {
       try {
@@ -212,6 +230,32 @@ function App() {
       setPanelDetailLoading(
         false
       );
+    }, []);
+
+
+  const filterPanelsByStatus =
+    useCallback(
+      (status) => {
+        setPanelSearch("");
+        setStatusFilter(status);
+
+        window.setTimeout(
+          () => {
+            scrollToSection(
+              "panel-monitor"
+            );
+          },
+          50
+        );
+      },
+      [scrollToSection]
+    );
+
+
+  const clearPanelFilters =
+    useCallback(() => {
+      setPanelSearch("");
+      setStatusFilter("ALL");
     }, []);
 
 
@@ -408,6 +452,11 @@ function App() {
     summary?.active_alarms ?? 0;
 
 
+  const panelFiltersActive =
+    panelSearch.trim() !== "" ||
+    statusFilter !== "ALL";
+
+
   function formatUpdateTime() {
     if (!lastUpdate) {
       return "--";
@@ -488,6 +537,44 @@ function App() {
         </div>
 
 
+        <nav className="top-navigation">
+
+          <button
+            type="button"
+            onClick={() =>
+              scrollToSection(
+                "overview"
+              )
+            }
+          >
+            Overview
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              scrollToSection(
+                "alarm-center"
+              )
+            }
+          >
+            Alarms
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              scrollToSection(
+                "panel-monitor"
+              )
+            }
+          >
+            Panels
+          </button>
+
+        </nav>
+
+
         <div className="topbar-right">
 
           <div className="update-info">
@@ -524,497 +611,554 @@ function App() {
 
       <main className="dashboard">
 
-        <section className="intro">
+        <section
+          className="dashboard-anchor"
+          id="overview"
+        >
 
-          <div>
+          <section className="intro">
 
-            <p className="eyebrow">
-              LOW VOLTAGE DISTRIBUTION MONITORING
-            </p>
+            <div>
 
-            <h2>
-              Grid Overview
-            </h2>
+              <p className="eyebrow">
+                LOW VOLTAGE DISTRIBUTION MONITORING
+              </p>
 
-            <p className="subtitle">
-              Real-time telemetry,
-              explainable risk analysis
-              and early-warning monitoring.
-            </p>
+              <h2>
+                Grid Overview
+              </h2>
 
-          </div>
-
-
-          <button
-            className="refresh-button"
-            onClick={loadDashboard}
-            type="button"
-          >
-            Refresh Data
-          </button>
-
-        </section>
-
-
-        <section className="primary-grid">
-
-          <article className="metric-card">
-
-            <div className="metric-header">
-
-              <span>
-                Connected Panels
-              </span>
-
-              <span
-                className="
-                  metric-indicator
-                  online-dot
-                "
-              />
+              <p className="subtitle">
+                Real-time telemetry,
+                explainable risk analysis
+                and early-warning monitoring.
+              </p>
 
             </div>
 
-            <strong>
-              {loading
-                ? "--"
-                : connectedPanels}
-            </strong>
 
-            <p>
-              Registered monitoring modules
-            </p>
+            <button
+              className="refresh-button"
+              onClick={loadDashboard}
+              type="button"
+            >
+              Refresh Data
+            </button>
 
-          </article>
-
-
-          <article className="metric-card">
-
-            <div className="metric-header">
-
-              <span>
-                Active Alarms
-              </span>
-
-              <span
-                className={`metric-indicator ${
-                  activeAlarms > 0
-                    ? "alarm-dot"
-                    : "online-dot"
-                }`}
-              />
-
-            </div>
-
-            <strong>
-              {loading
-                ? "--"
-                : activeAlarms}
-            </strong>
-
-            <p>
-              Open operational incidents
-            </p>
-
-          </article>
+          </section>
 
 
-          <article className="metric-card">
+          <section className="primary-grid">
 
-            <div className="metric-header">
+            <article className="metric-card">
 
-              <span>
-                System Health
-              </span>
+              <div className="metric-header">
 
-            </div>
+                <span>
+                  Connected Panels
+                </span>
 
-            <strong
-              className={
-                backendOnline
-                  ? "health-online"
-                  : "health-offline"
+                <span
+                  className="
+                    metric-indicator
+                    online-dot
+                  "
+                />
+
+              </div>
+
+              <strong>
+                {loading
+                  ? "--"
+                  : connectedPanels}
+              </strong>
+
+              <p>
+                Registered monitoring modules
+              </p>
+
+            </article>
+
+
+            <button
+              className="metric-card metric-action-card"
+              type="button"
+              onClick={() =>
+                scrollToSection(
+                  "alarm-center"
+                )
               }
             >
-              {loading
-                ? "CHECKING"
-                : backendOnline
-                  ? "ONLINE"
-                  : "OFFLINE"}
-            </strong>
 
-            <p>
-              GridGuard API and
-              monitoring core
-            </p>
+              <div className="metric-header">
 
-          </article>
+                <span>
+                  Active Alarms
+                </span>
 
-        </section>
-
-
-        <section className="risk-grid">
-
-          <article
-            className="
-              risk-card
-              normal-card
-            "
-          >
-
-            <span>
-              NORMAL
-            </span>
-
-            <strong>
-              {distribution.normal}
-            </strong>
-
-          </article>
-
-
-          <article
-            className="
-              risk-card
-              warning-card
-            "
-          >
-
-            <span>
-              WARNING
-            </span>
-
-            <strong>
-              {distribution.warning}
-            </strong>
-
-          </article>
-
-
-          <article
-            className="
-              risk-card
-              high-card
-            "
-          >
-
-            <span>
-              HIGH
-            </span>
-
-            <strong>
-              {distribution.high}
-            </strong>
-
-          </article>
-
-
-          <article
-            className="
-              risk-card
-              critical-card
-            "
-          >
-
-            <span>
-              CRITICAL
-            </span>
-
-            <strong>
-              {distribution.critical}
-            </strong>
-
-          </article>
-
-        </section>
-
-
-        <section className="content-grid">
-
-          <article className="panel-card">
-
-            <div className="section-header">
-
-              <div>
-
-                <p className="eyebrow">
-                  LIVE STATUS
-                </p>
-
-                <h3>
-                  Risk Distribution
-                </h3>
+                <span
+                  className={`metric-indicator ${
+                    activeAlarms > 0
+                      ? "alarm-dot"
+                      : "online-dot"
+                  }`}
+                />
 
               </div>
 
-            </div>
+              <strong>
+                {loading
+                  ? "--"
+                  : activeAlarms}
+              </strong>
+
+              <p>
+                Open operational incidents
+              </p>
+
+              <span className="metric-action-hint">
+                View Alarm Center →
+              </span>
+
+            </button>
 
 
-            <div className="risk-chart-layout">
+            <article className="metric-card">
 
-              <div className="chart-container">
+              <div className="metric-header">
 
-                {riskChartData.length >
-                0 ? (
+                <span>
+                  System Health
+                </span>
 
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                  >
+              </div>
 
-                    <PieChart>
+              <strong
+                className={
+                  backendOnline
+                    ? "health-online"
+                    : "health-offline"
+                }
+              >
+                {loading
+                  ? "CHECKING"
+                  : backendOnline
+                    ? "ONLINE"
+                    : "OFFLINE"}
+              </strong>
 
-                      <Pie
-                        data={
-                          riskChartData
-                        }
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius="63%"
-                        outerRadius="86%"
-                        paddingAngle={2}
-                      >
+              <p>
+                GridGuard API and
+                monitoring core
+              </p>
 
-                        {riskChartData.map(
-                          (entry) => (
+            </article>
 
-                            <Cell
-                              key={
-                                entry.key
-                              }
-                              fill={
-                                RISK_COLORS[
-                                  entry.key
-                                ]
-                              }
-                            />
-
-                          )
-                        )}
-
-                      </Pie>
-
-                      <Tooltip />
-
-                    </PieChart>
-
-                  </ResponsiveContainer>
-
-                ) : (
-
-                  <div className="empty-state">
-                    No risk data available.
-                  </div>
-
-                )}
+          </section>
 
 
-                <div className="chart-center">
+          <section className="risk-grid">
 
-                  <strong>
-                    {connectedPanels}
-                  </strong>
+            <button
+              type="button"
+              className="
+                risk-card
+                risk-filter-card
+                normal-card
+              "
+              onClick={() =>
+                filterPanelsByStatus(
+                  "NORMAL"
+                )
+              }
+            >
 
-                  <span>
-                    Panels
-                  </span>
+              <span>
+                NORMAL
+              </span>
+
+              <strong>
+                {distribution.normal}
+              </strong>
+
+            </button>
+
+
+            <button
+              type="button"
+              className="
+                risk-card
+                risk-filter-card
+                warning-card
+              "
+              onClick={() =>
+                filterPanelsByStatus(
+                  "WARNING"
+                )
+              }
+            >
+
+              <span>
+                WARNING
+              </span>
+
+              <strong>
+                {distribution.warning}
+              </strong>
+
+            </button>
+
+
+            <button
+              type="button"
+              className="
+                risk-card
+                risk-filter-card
+                high-card
+              "
+              onClick={() =>
+                filterPanelsByStatus(
+                  "HIGH"
+                )
+              }
+            >
+
+              <span>
+                HIGH
+              </span>
+
+              <strong>
+                {distribution.high}
+              </strong>
+
+            </button>
+
+
+            <button
+              type="button"
+              className="
+                risk-card
+                risk-filter-card
+                critical-card
+              "
+              onClick={() =>
+                filterPanelsByStatus(
+                  "CRITICAL"
+                )
+              }
+            >
+
+              <span>
+                CRITICAL
+              </span>
+
+              <strong>
+                {distribution.critical}
+              </strong>
+
+            </button>
+
+          </section>
+
+
+          <section className="content-grid">
+
+            <article className="panel-card">
+
+              <div className="section-header">
+
+                <div>
+
+                  <p className="eyebrow">
+                    LIVE STATUS
+                  </p>
+
+                  <h3>
+                    Risk Distribution
+                  </h3>
 
                 </div>
 
               </div>
 
 
-              <div className="legend">
+              <div className="risk-chart-layout">
 
-                {[
-                  [
-                    "normal",
-                    "Normal",
-                  ],
-                  [
-                    "warning",
-                    "Warning",
-                  ],
-                  [
-                    "high",
-                    "High",
-                  ],
-                  [
-                    "critical",
-                    "Critical",
-                  ],
-                  [
-                    "unknown",
-                    "Unknown",
-                  ],
-                ].map(
-                  ([
-                    key,
-                    label,
-                  ]) => (
+                <div className="chart-container">
 
-                    <div
-                      className="legend-row"
-                      key={key}
+                  {riskChartData.length >
+                  0 ? (
+
+                    <ResponsiveContainer
+                      width="100%"
+                      height="100%"
                     >
 
-                      <div>
+                      <PieChart>
 
-                        <span
-                          className="legend-dot"
-                          style={{
-                            background:
-                              RISK_COLORS[
-                                key
-                              ],
-                          }}
-                        />
+                        <Pie
+                          data={
+                            riskChartData
+                          }
+                          dataKey="value"
+                          nameKey="name"
+                          innerRadius="63%"
+                          outerRadius="86%"
+                          paddingAngle={2}
+                        >
 
-                        {label}
+                          {riskChartData.map(
+                            (entry) => (
 
-                      </div>
+                              <Cell
+                                key={
+                                  entry.key
+                                }
+                                fill={
+                                  RISK_COLORS[
+                                    entry.key
+                                  ]
+                                }
+                              />
 
-                      <strong>
-                        {
-                          distribution[
-                            key
-                          ]
-                        }
-                      </strong>
+                            )
+                          )}
 
+                        </Pie>
+
+                        <Tooltip />
+
+                      </PieChart>
+
+                    </ResponsiveContainer>
+
+                  ) : (
+
+                    <div className="empty-state">
+                      No risk data available.
                     </div>
 
-                  )
-                )}
-
-              </div>
-
-            </div>
-
-          </article>
+                  )}
 
 
-          <article className="panel-card">
+                  <div className="chart-center">
 
-            <div className="section-header">
+                    <strong>
+                      {connectedPanels}
+                    </strong>
 
-              <div>
+                    <span>
+                      Panels
+                    </span>
 
-                <p className="eyebrow">
-                  PRIORITY MONITORING
-                </p>
+                  </div>
 
-                <h3>
-                  Highest Risk Panels
-                </h3>
-
-              </div>
-
-            </div>
-
-
-            {elevatedRiskPanels.length ===
-            0 ? (
-
-              <div className="healthy-state">
-
-                <div className="healthy-icon">
-                  ✓
                 </div>
 
-                <h4>
-                  No elevated-risk panels
-                </h4>
 
-                <p>
-                  All currently evaluated
-                  panels are operating
-                  within normal conditions.
-                </p>
+                <div className="legend">
+
+                  {[
+                    [
+                      "normal",
+                      "Normal",
+                    ],
+                    [
+                      "warning",
+                      "Warning",
+                    ],
+                    [
+                      "high",
+                      "High",
+                    ],
+                    [
+                      "critical",
+                      "Critical",
+                    ],
+                    [
+                      "unknown",
+                      "Unknown",
+                    ],
+                  ].map(
+                    ([
+                      key,
+                      label,
+                    ]) => (
+
+                      <div
+                        className="legend-row"
+                        key={key}
+                      >
+
+                        <div>
+
+                          <span
+                            className="legend-dot"
+                            style={{
+                              background:
+                                RISK_COLORS[
+                                  key
+                                ],
+                            }}
+                          />
+
+                          {label}
+
+                        </div>
+
+                        <strong>
+                          {
+                            distribution[
+                              key
+                            ]
+                          }
+                        </strong>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
 
               </div>
 
-            ) : (
+            </article>
 
-              <div className="risk-list">
 
-                {elevatedRiskPanels.map(
-                  (panel) => (
+            <article className="panel-card">
 
-                    <button
-                      className="risk-row risk-row-button"
-                      key={
-                        panel.panel_id
-                      }
-                      onClick={() =>
-                        openPanelDetail(
+              <div className="section-header">
+
+                <div>
+
+                  <p className="eyebrow">
+                    PRIORITY MONITORING
+                  </p>
+
+                  <h3>
+                    Highest Risk Panels
+                  </h3>
+
+                </div>
+
+              </div>
+
+
+              {elevatedRiskPanels.length ===
+              0 ? (
+
+                <div className="healthy-state">
+
+                  <div className="healthy-icon">
+                    ✓
+                  </div>
+
+                  <h4>
+                    No elevated-risk panels
+                  </h4>
+
+                  <p>
+                    All currently evaluated
+                    panels are operating
+                    within normal conditions.
+                  </p>
+
+                </div>
+
+              ) : (
+
+                <div className="risk-list">
+
+                  {elevatedRiskPanels.map(
+                    (panel) => (
+
+                      <button
+                        className="risk-row risk-row-button"
+                        key={
                           panel.panel_id
-                        )
-                      }
-                      type="button"
-                    >
-
-                      <div>
-
-                        <strong>
-                          {
+                        }
+                        onClick={() =>
+                          openPanelDetail(
                             panel.panel_id
-                          }
-                        </strong>
+                          )
+                        }
+                        type="button"
+                      >
 
-                        <span>
-                          {
-                            panel.primary_risk
-                          }
-                        </span>
+                        <div>
 
-                      </div>
+                          <strong>
+                            {
+                              panel.panel_id
+                            }
+                          </strong>
+
+                          <span>
+                            {
+                              panel.primary_risk
+                            }
+                          </span>
+
+                        </div>
 
 
-                      <div className="risk-row-right">
+                        <div className="risk-row-right">
 
-                        <span
-                          className={`risk-pill ${
-                            panel.status
-                              .toLowerCase()
-                          }`}
-                        >
-                          {
-                            panel.status
-                          }
-                        </span>
+                          <span
+                            className={`risk-pill ${
+                              panel.status
+                                .toLowerCase()
+                            }`}
+                          >
+                            {
+                              panel.status
+                            }
+                          </span>
 
-                        <strong>
-                          {
-                            panel.risk_score
-                          }
-                        </strong>
+                          <strong>
+                            {
+                              panel.risk_score
+                            }
+                          </strong>
 
-                      </div>
+                        </div>
 
-                    </button>
+                      </button>
 
-                  )
-                )}
+                    )
+                  )}
 
-              </div>
+                </div>
 
-            )}
+              )}
 
-          </article>
+            </article>
+
+          </section>
 
         </section>
 
 
-        <AlarmCenter
-          alarms={alarms}
-          onOpenPanel={
-            openPanelDetail
-          }
-        />
+        <div
+          className="dashboard-anchor"
+          id="alarm-center"
+        >
+
+          <AlarmCenter
+            alarms={alarms}
+            onOpenPanel={
+              openPanelDetail
+            }
+          />
+
+        </div>
 
 
-        <section className="panel-monitor">
+        <section
+          className="panel-monitor dashboard-anchor"
+          id="panel-monitor"
+        >
 
           <div className="monitor-heading">
 
@@ -1036,17 +1180,36 @@ function App() {
             </div>
 
 
-            <div className="panel-count">
+            <div className="monitor-heading-right">
 
-              Showing
+              <div className="panel-count">
 
-              <strong>
-                {
-                  filteredPanels.length
-                }
-              </strong>
+                Showing
 
-              panels
+                <strong>
+                  {
+                    filteredPanels.length
+                  }
+                </strong>
+
+                panels
+
+              </div>
+
+
+              {panelFiltersActive && (
+
+                <button
+                  className="clear-filter-button"
+                  type="button"
+                  onClick={
+                    clearPanelFilters
+                  }
+                >
+                  Clear Filters
+                </button>
+
+              )}
 
             </div>
 
@@ -1118,10 +1281,16 @@ function App() {
                   <th>Current</th>
                   <th>Cable Temp</th>
                   <th>Ambient</th>
-                  <th>Humidity</th>
+                  <th className="optional-panel-column">
+                    Humidity
+                  </th>
                   <th>PD</th>
-                  <th>Quality</th>
-                  <th>Last Seen</th>
+                  <th className="optional-panel-column">
+                    Quality
+                  </th>
+                  <th className="optional-panel-column">
+                    Last Seen
+                  </th>
                 </tr>
 
               </thead>
@@ -1233,7 +1402,7 @@ function App() {
                         </td>
 
 
-                        <td>
+                        <td className="optional-panel-column">
                           {formatNumber(
                             panel.humidity_pct,
                             1
@@ -1249,7 +1418,7 @@ function App() {
                         </td>
 
 
-                        <td>
+                        <td className="optional-panel-column">
 
                           <span
                             className={`quality-pill ${
@@ -1268,7 +1437,7 @@ function App() {
                         </td>
 
 
-                        <td className="last-seen-cell">
+                        <td className="last-seen-cell optional-panel-column">
                           {formatLastSeen(
                             panel.last_seen
                           )}
