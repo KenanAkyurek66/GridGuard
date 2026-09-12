@@ -1,0 +1,7 @@
+fastapi
+paho-mqtt
+pydantic
+pymodbus
+requests
+SQLAlchemy
+uvicorn
