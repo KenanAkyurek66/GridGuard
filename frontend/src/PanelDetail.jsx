@@ -9,6 +9,8 @@ import {
   YAxis,
 } from "recharts";
 
+import AiTimeline from "./AiTimeline";
+
 
 const API_BASE_URL =
   "http://127.0.0.1:8000";
@@ -477,7 +479,7 @@ function PanelDetail({
                     <article>
 
                       <span>
-                        Anomaly Detection
+                        Behavioral Anomaly
                       </span>
 
                       <strong
@@ -550,6 +552,14 @@ function PanelDetail({
                     </p>
 
                   </div>
+
+
+                  <AiTimeline
+                    key={panel?.panel_id}
+                    panel={panel}
+                    risk={risk}
+                    intelligence={intelligence}
+                  />
 
 
                   <div className="ai-driver-list">
