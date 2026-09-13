@@ -1,0 +1,532 @@
+{
+  "important_note": "XGBoost feature contributions explain prototype model behavior on synthetic data. They do not establish physical causality.",
+  "method": "XGBoost native SHAP-style feature contributions",
+  "top_feature_count": 8,
+  "scenarios": [
+    {
+      "scenario": "HOT_AMBIENT_SAFE_DELTA",
+      "description": "High ambient temperature with a relatively healthy cable-to-ambient thermal delta.",
+      "expected_escalation": 0,
+      "explanation": {
+        "probability": 0.000681,
+        "bias": 0.092635,
+        "top_features": [
+          {
+            "feature": "ambient_temperature_c_std_5",
+            "label": "Ambient temperature variability",
+            "value": 1.355352,
+            "contribution": -2.900449,
+            "absolute_contribution": 2.900449,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c",
+            "label": "Cable-to-ambient thermal delta",
+            "value": 11.0,
+            "contribution": -1.424647,
+            "absolute_contribution": 1.424647,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index",
+            "label": "Partial-discharge index",
+            "value": 11.0,
+            "contribution": -1.017122,
+            "absolute_contribution": 1.017122,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "ambient_temperature_c",
+            "label": "Ambient temperature",
+            "value": 44.0,
+            "contribution": -0.67847,
+            "absolute_contribution": 0.67847,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "ambient_temperature_c_slope_5",
+            "label": "Ambient temperature trend",
+            "value": 0.8572,
+            "contribution": -0.441729,
+            "absolute_contribution": 0.441729,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index_std_5",
+            "label": "PD variability",
+            "value": 0.113052,
+            "contribution": -0.383197,
+            "absolute_contribution": 0.383197,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "current_a_std_5",
+            "label": "Current variability",
+            "value": 1.69419,
+            "contribution": -0.24191,
+            "absolute_contribution": 0.24191,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c_slope_5",
+            "label": "Thermal-delta trend",
+            "value": -0.2144,
+            "contribution": -0.22736,
+            "absolute_contribution": 0.22736,
+            "direction": "DECREASES_RISK"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "RECOVERY_TREND",
+      "description": "Previously elevated measurements are actively recovering instead of deteriorating.",
+      "expected_escalation": 0,
+      "explanation": {
+        "probability": 0.003829,
+        "bias": 0.092635,
+        "top_features": [
+          {
+            "feature": "pd_index_mean_5",
+            "label": "Recent mean PD index",
+            "value": 23.8572,
+            "contribution": -0.816666,
+            "absolute_contribution": 0.816666,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c_slope_5",
+            "label": "Thermal-delta trend",
+            "value": -0.7857,
+            "contribution": -0.715047,
+            "absolute_contribution": 0.715047,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c_slope_5",
+            "label": "Cable temperature trend",
+            "value": -0.7857,
+            "contribution": -0.648663,
+            "absolute_contribution": 0.648663,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "current_a_slope_5",
+            "label": "Current trend",
+            "value": -5.7143,
+            "contribution": -0.595322,
+            "absolute_contribution": 0.595322,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index_slope_5",
+            "label": "PD trend",
+            "value": -0.9285,
+            "contribution": -0.491315,
+            "absolute_contribution": 0.491315,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "current_change_pct",
+            "label": "Current change vs recent baseline",
+            "value": -4.669246,
+            "contribution": -0.476239,
+            "absolute_contribution": 0.476239,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index",
+            "label": "Partial-discharge index",
+            "value": 22.0,
+            "contribution": -0.31499,
+            "absolute_contribution": 0.31499,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index_std_5",
+            "label": "PD variability",
+            "value": 1.468087,
+            "contribution": -0.30813,
+            "absolute_contribution": 0.30813,
+            "direction": "DECREASES_RISK"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "SLOW_THERMAL_ESCALATION",
+      "description": "Slow but persistent cable heating with rising load and a widening thermal delta.",
+      "expected_escalation": 1,
+      "explanation": {
+        "probability": 0.989061,
+        "bias": 0.092635,
+        "top_features": [
+          {
+            "feature": "thermal_delta_c",
+            "label": "Cable-to-ambient thermal delta",
+            "value": 33.0,
+            "contribution": 2.029828,
+            "absolute_contribution": 2.029828,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c",
+            "label": "Cable temperature",
+            "value": 64.0,
+            "contribution": 1.597343,
+            "absolute_contribution": 1.597343,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c_mean_5",
+            "label": "Recent mean cable temperature",
+            "value": 61.0,
+            "contribution": 0.610925,
+            "absolute_contribution": 0.610925,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c_mean_5",
+            "label": "Recent mean thermal delta",
+            "value": 30.1428,
+            "contribution": 0.466257,
+            "absolute_contribution": 0.466257,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "pd_index",
+            "label": "Partial-discharge index",
+            "value": 14.0,
+            "contribution": -0.348462,
+            "absolute_contribution": 0.348462,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index_std_5",
+            "label": "PD variability",
+            "value": 0.225787,
+            "contribution": -0.298828,
+            "absolute_contribution": 0.298828,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c_slope_5",
+            "label": "Thermal-delta trend",
+            "value": 1.4285,
+            "contribution": 0.239863,
+            "absolute_contribution": 0.239863,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "current_change_pct",
+            "label": "Current change vs recent baseline",
+            "value": 5.433763,
+            "contribution": 0.231937,
+            "absolute_contribution": 0.231937,
+            "direction": "INCREASES_RISK"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "LOAD_THERMAL_ESCALATION",
+      "description": "Current and cable temperature rise together toward a severe thermal condition.",
+      "expected_escalation": 1,
+      "explanation": {
+        "probability": 0.989553,
+        "bias": 0.092635,
+        "top_features": [
+          {
+            "feature": "thermal_delta_c",
+            "label": "Cable-to-ambient thermal delta",
+            "value": 34.0,
+            "contribution": 2.000479,
+            "absolute_contribution": 2.000479,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c",
+            "label": "Cable temperature",
+            "value": 65.0,
+            "contribution": 1.84417,
+            "absolute_contribution": 1.84417,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c_mean_5",
+            "label": "Recent mean thermal delta",
+            "value": 31.2856,
+            "contribution": 0.757913,
+            "absolute_contribution": 0.757913,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c_mean_5",
+            "label": "Recent mean cable temperature",
+            "value": 62.1428,
+            "contribution": 0.697168,
+            "absolute_contribution": 0.697168,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "pd_index",
+            "label": "Partial-discharge index",
+            "value": 12.0,
+            "contribution": -0.409789,
+            "absolute_contribution": 0.409789,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "current_change_pct",
+            "label": "Current change vs recent baseline",
+            "value": 6.64307,
+            "contribution": 0.346204,
+            "absolute_contribution": 0.346204,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "pd_index_std_5",
+            "label": "PD variability",
+            "value": 0.225787,
+            "contribution": -0.317881,
+            "absolute_contribution": 0.317881,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "current_a_mean_5",
+            "label": "Recent mean current",
+            "value": 412.1428,
+            "contribution": -0.229988,
+            "absolute_contribution": 0.229988,
+            "direction": "DECREASES_RISK"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "PD_ESCALATION",
+      "description": "Partial-discharge activity rises strongly while other measurements remain stable.",
+      "expected_escalation": 1,
+      "explanation": {
+        "probability": 0.747578,
+        "bias": 0.092635,
+        "top_features": [
+          {
+            "feature": "pd_index",
+            "label": "Partial-discharge index",
+            "value": 60.0,
+            "contribution": 2.447657,
+            "absolute_contribution": 2.447657,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c_std_5",
+            "label": "Cable temperature variability",
+            "value": 0.113052,
+            "contribution": -1.119607,
+            "absolute_contribution": 1.119607,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index_mean_5",
+            "label": "Recent mean PD index",
+            "value": 53.1428,
+            "contribution": 0.662709,
+            "absolute_contribution": 0.662709,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c",
+            "label": "Cable temperature",
+            "value": 45.0,
+            "contribution": -0.459978,
+            "absolute_contribution": 0.459978,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "pd_index_slope_5",
+            "label": "PD trend",
+            "value": 3.4285,
+            "contribution": 0.295267,
+            "absolute_contribution": 0.295267,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c_std_5",
+            "label": "Thermal-delta variability",
+            "value": 0.113052,
+            "contribution": 0.234127,
+            "absolute_contribution": 0.234127,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c",
+            "label": "Cable-to-ambient thermal delta",
+            "value": 15.0,
+            "contribution": -0.196774,
+            "absolute_contribution": 0.196774,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "current_a_std_5",
+            "label": "Current variability",
+            "value": 0.564783,
+            "contribution": -0.152513,
+            "absolute_contribution": 0.152513,
+            "direction": "DECREASES_RISK"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "HUMIDITY_PD_ESCALATION",
+      "description": "Humidity and partial-discharge indicators deteriorate together.",
+      "expected_escalation": 1,
+      "explanation": {
+        "probability": 0.88217,
+        "bias": 0.092635,
+        "top_features": [
+          {
+            "feature": "pd_index",
+            "label": "Partial-discharge index",
+            "value": 52.0,
+            "contribution": 2.634033,
+            "absolute_contribution": 2.634033,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "pd_index_mean_5",
+            "label": "Recent mean PD index",
+            "value": 46.7142,
+            "contribution": 0.772438,
+            "absolute_contribution": 0.772438,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "humidity_pct_std_5",
+            "label": "Humidity variability",
+            "value": 3.275329,
+            "contribution": -0.73718,
+            "absolute_contribution": 0.73718,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c",
+            "label": "Cable temperature",
+            "value": 46.0,
+            "contribution": -0.49706,
+            "absolute_contribution": 0.49706,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "ambient_temperature_c_std_5",
+            "label": "Ambient temperature variability",
+            "value": 0.113052,
+            "contribution": 0.365329,
+            "absolute_contribution": 0.365329,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "humidity_pct_mean_5",
+            "label": "Recent mean humidity",
+            "value": 74.8572,
+            "contribution": 0.268403,
+            "absolute_contribution": 0.268403,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "pd_index_slope_5",
+            "label": "PD trend",
+            "value": 2.6428,
+            "contribution": 0.229255,
+            "absolute_contribution": 0.229255,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "thermal_delta_c_std_5",
+            "label": "Thermal-delta variability",
+            "value": 0.225787,
+            "contribution": 0.223162,
+            "absolute_contribution": 0.223162,
+            "direction": "INCREASES_RISK"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "SUBTLE_COMBINED_ESCALATION",
+      "description": "Several moderate signals deteriorate together before any single measurement becomes extreme.",
+      "expected_escalation": 1,
+      "explanation": {
+        "probability": 0.94119,
+        "bias": 0.092635,
+        "top_features": [
+          {
+            "feature": "thermal_delta_c",
+            "label": "Cable-to-ambient thermal delta",
+            "value": 27.0,
+            "contribution": 1.158072,
+            "absolute_contribution": 1.158072,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "pd_index",
+            "label": "Partial-discharge index",
+            "value": 42.0,
+            "contribution": 0.852113,
+            "absolute_contribution": 0.852113,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "cable_temperature_c",
+            "label": "Cable temperature",
+            "value": 59.0,
+            "contribution": 0.644182,
+            "absolute_contribution": 0.644182,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "humidity_pct_std_5",
+            "label": "Humidity variability",
+            "value": 1.806925,
+            "contribution": -0.547991,
+            "absolute_contribution": 0.547991,
+            "direction": "DECREASES_RISK"
+          },
+          {
+            "feature": "humidity_pct_mean_5",
+            "label": "Recent mean humidity",
+            "value": 63.7142,
+            "contribution": 0.303356,
+            "absolute_contribution": 0.303356,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "pd_index_slope_5",
+            "label": "PD trend",
+            "value": 2.0,
+            "contribution": 0.251263,
+            "absolute_contribution": 0.251263,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "current_change_pct",
+            "label": "Current change vs recent baseline",
+            "value": 5.273462,
+            "contribution": 0.246486,
+            "absolute_contribution": 0.246486,
+            "direction": "INCREASES_RISK"
+          },
+          {
+            "feature": "current_a_mean_5",
+            "label": "Recent mean current",
+            "value": 372.1428,
+            "contribution": 0.229779,
+            "absolute_contribution": 0.229779,
+            "direction": "INCREASES_RISK"
+          }
+        ]
+      }
+    }
+  ]
+}

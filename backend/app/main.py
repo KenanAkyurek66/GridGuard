@@ -6,6 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 
 from backend.app.database import Base, engine, get_db
+from backend.app.ai_service import (
+    analyze_gridguard_intelligence,
+    get_ai_runtime_status,
+)
 from backend.app.models import (
     Alarm,
     Panel,
@@ -22,7 +26,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="GridGuard API",
     description="GridGuard Edge Monitoring and Early Warning System",
-    version="0.5.0"
+    version="0.6.0"
 )
 
 app.add_middleware(
@@ -67,6 +71,36 @@ def build_history(
     ]
 
     return history
+
+
+def build_ai_history(
+    db: Session,
+    panel_id: str,
+    limit: int = 20
+) -> list[dict]:
+    records = (
+        db.query(Telemetry)
+        .filter(Telemetry.panel_id == panel_id)
+        .order_by(Telemetry.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
+
+    # AI temporal features require oldest -> newest.
+    records.reverse()
+
+    return [
+        {
+            "current_a": record.current_a,
+            "cable_temperature_c": record.cable_temperature_c,
+            "ambient_temperature_c": record.ambient_temperature_c,
+            "humidity_pct": record.humidity_pct,
+            "pd_index": record.pd_index,
+            "arc_detected": record.arc_detected,
+            "data_quality": record.data_quality,
+        }
+        for record in records
+    ]
 
 
 def sync_alarm(
@@ -162,7 +196,7 @@ def root():
     return {
         "service": "GridGuard API",
         "status": "running",
-        "version": "0.5.0"
+        "version": "0.6.0"
     }
 
 
@@ -176,6 +210,11 @@ def health_check(
         "status": "healthy",
         "connected_panels": connected_panels
     }
+
+
+@app.get("/ai/status")
+def ai_status():
+    return get_ai_runtime_status()
 
 
 @app.post("/telemetry")
@@ -420,6 +459,70 @@ def get_panel_risk(
         "analyzed_points": len(history),
         **risk_result
     }
+
+
+@app.get("/panels/{panel_id}/intelligence")
+def get_panel_intelligence(
+    panel_id: str,
+    history_limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    panel = (
+        db.query(Panel)
+        .filter(Panel.panel_id == panel_id)
+        .first()
+    )
+
+    if panel is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Panel not found"
+        )
+
+    history_limit = max(5, min(history_limit, 100))
+
+    telemetry_rows = build_ai_history(
+        db=db,
+        panel_id=panel_id,
+        limit=history_limit
+    )
+
+    latest_risk = (
+        db.query(RiskAssessment)
+        .filter(RiskAssessment.panel_id == panel_id)
+        .order_by(RiskAssessment.id.desc())
+        .first()
+    )
+
+    if latest_risk is None:
+        return {
+            "panel_id": panel_id,
+            "available": False,
+            "reason": "No risk assessment available.",
+            "history_points": len(telemetry_rows),
+            "generated_at": datetime.now(timezone.utc),
+        }
+
+    risk_result = {
+        "risk_score": latest_risk.risk_score,
+        "status": latest_risk.status,
+        "primary_risk": latest_risk.primary_risk,
+        "causes": latest_risk.causes or [],
+        "component_scores": latest_risk.component_scores or {},
+        "metrics": latest_risk.metrics or {},
+    }
+
+    intelligence = analyze_gridguard_intelligence(
+        telemetry_rows=telemetry_rows,
+        risk_result=risk_result,
+    )
+
+    return {
+        "panel_id": panel_id,
+        "generated_at": datetime.now(timezone.utc),
+        **intelligence,
+    }
+
 
 @app.get("/alarms")
 def get_alarms(
@@ -955,6 +1058,33 @@ def get_dashboard_panel_detail(
         }
 
     # ---------------------------------------------------------
+    # GRIDGUARD AI INTELLIGENCE
+    # ---------------------------------------------------------
+    #
+    # AI is computed on demand for the selected panel instead
+    # of on every telemetry ingestion. This keeps the 100-panel
+    # simulator and ingestion pipeline lightweight.
+    # ---------------------------------------------------------
+
+    if latest_risk is None:
+        intelligence = {
+            "available": False,
+            "reason": "No risk assessment available.",
+            "history_points": len(telemetry_history),
+        }
+    else:
+        ai_history = build_ai_history(
+            db=db,
+            panel_id=panel_id,
+            limit=max(20, history_limit)
+        )
+
+        intelligence = analyze_gridguard_intelligence(
+            telemetry_rows=ai_history,
+            risk_result=risk_data,
+        )
+
+    # ---------------------------------------------------------
     # RESPONSE
     # ---------------------------------------------------------
 
@@ -976,6 +1106,8 @@ def get_dashboard_panel_detail(
         },
 
         "risk": risk_data,
+
+        "intelligence": intelligence,
 
         "active_alarm": alarm_data,
 

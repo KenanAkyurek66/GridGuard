@@ -1,0 +1,23 @@
+{
+  "important_note": "Unsupervised anomaly detector trained only on healthy synthetic prototype telemetry. Metrics do not represent validated field performance.",
+  "training": {
+    "healthy_training_rows": 23480,
+    "training_scenarios": 602
+  },
+  "calibration": {
+    "healthy_validation_rows": 4890,
+    "target_false_positive_rate": 0.05,
+    "threshold": -0.5246487579647432
+  },
+  "test": {
+    "normal_rows": 4995,
+    "abnormal_rows": 5940,
+    "normal_false_positive_rate": 0.049249,
+    "normal_specificity": 0.950751,
+    "abnormal_detection_rate": 0.732155,
+    "normal_score_mean": -0.44555,
+    "abnormal_score_mean": -0.556745,
+    "normal_score_median": -0.433117,
+    "abnormal_score_median": -0.564511
+  }
+}

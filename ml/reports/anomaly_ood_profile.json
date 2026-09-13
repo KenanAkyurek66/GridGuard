@@ -1,0 +1,254 @@
+{
+  "important_note": "OOD anomaly profiling on manually designed synthetic scenarios. Anomaly detection does not represent fault classification and is not field validation.",
+  "threshold": -0.5246487579647432,
+  "scenarios": [
+    {
+      "scenario": "HOT_AMBIENT_SAFE_DELTA",
+      "description": "High ambient temperature with a relatively healthy cable-to-ambient thermal delta.",
+      "expected_escalation": 0,
+      "normality_score": -0.494009,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.030639,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "CURRENT_RISE_NO_HEAT",
+      "description": "Current rises significantly but without corresponding thermal deterioration.",
+      "expected_escalation": 0,
+      "normality_score": -0.478869,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.04578,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "HIGH_HUMIDITY_ONLY",
+      "description": "Very high humidity without thermal, current or partial-discharge escalation.",
+      "expected_escalation": 0,
+      "normality_score": -0.471828,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.052821,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "SHIFTED_BASELINE_SAFE",
+      "description": "A higher-than-usual operating baseline that remains stable and internally consistent.",
+      "expected_escalation": 0,
+      "normality_score": -0.50879,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.015859,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "RECOVERY_TREND",
+      "description": "Previously elevated measurements are actively recovering instead of deteriorating.",
+      "expected_escalation": 0,
+      "normality_score": -0.5372,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.012551,
+      "anomaly_detected": true,
+      "anomaly_level": "ELEVATED"
+    },
+    {
+      "scenario": "SLOW_THERMAL_ESCALATION",
+      "description": "Slow but persistent cable heating with rising load and a widening thermal delta.",
+      "expected_escalation": 1,
+      "normality_score": -0.54535,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.020701,
+      "anomaly_detected": true,
+      "anomaly_level": "ELEVATED"
+    },
+    {
+      "scenario": "LOAD_THERMAL_ESCALATION",
+      "description": "Current and cable temperature rise together toward a severe thermal condition.",
+      "expected_escalation": 1,
+      "normality_score": -0.546111,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.021462,
+      "anomaly_detected": true,
+      "anomaly_level": "ELEVATED"
+    },
+    {
+      "scenario": "PD_ESCALATION",
+      "description": "Partial-discharge activity rises strongly while other measurements remain stable.",
+      "expected_escalation": 1,
+      "normality_score": -0.483889,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.04076,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "HUMIDITY_PD_ESCALATION",
+      "description": "Humidity and partial-discharge indicators deteriorate together.",
+      "expected_escalation": 1,
+      "normality_score": -0.511307,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.013342,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "SUBTLE_COMBINED_ESCALATION",
+      "description": "Several moderate signals deteriorate together before any single measurement becomes extreme.",
+      "expected_escalation": 1,
+      "normality_score": -0.592973,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.068324,
+      "anomaly_detected": true,
+      "anomaly_level": "HIGH"
+    },
+    {
+      "scenario": "SINGLE_SENSOR_SPIKE",
+      "description": "A one-cycle multi-sensor spike marked as SUSPECT that immediately returns to normal.",
+      "expected_escalation": 0,
+      "normality_score": -0.674086,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.149437,
+      "anomaly_detected": true,
+      "anomaly_level": "SEVERE"
+    },
+    {
+      "scenario": "NOISY_SAFE",
+      "description": "Noisy but bounded healthy telemetry with no persistent trend.",
+      "expected_escalation": 0,
+      "normality_score": -0.399349,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.1253,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    }
+  ],
+  "ranking": [
+    {
+      "scenario": "SINGLE_SENSOR_SPIKE",
+      "description": "A one-cycle multi-sensor spike marked as SUSPECT that immediately returns to normal.",
+      "expected_escalation": 0,
+      "normality_score": -0.674086,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.149437,
+      "anomaly_detected": true,
+      "anomaly_level": "SEVERE"
+    },
+    {
+      "scenario": "SUBTLE_COMBINED_ESCALATION",
+      "description": "Several moderate signals deteriorate together before any single measurement becomes extreme.",
+      "expected_escalation": 1,
+      "normality_score": -0.592973,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.068324,
+      "anomaly_detected": true,
+      "anomaly_level": "HIGH"
+    },
+    {
+      "scenario": "LOAD_THERMAL_ESCALATION",
+      "description": "Current and cable temperature rise together toward a severe thermal condition.",
+      "expected_escalation": 1,
+      "normality_score": -0.546111,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.021462,
+      "anomaly_detected": true,
+      "anomaly_level": "ELEVATED"
+    },
+    {
+      "scenario": "SLOW_THERMAL_ESCALATION",
+      "description": "Slow but persistent cable heating with rising load and a widening thermal delta.",
+      "expected_escalation": 1,
+      "normality_score": -0.54535,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.020701,
+      "anomaly_detected": true,
+      "anomaly_level": "ELEVATED"
+    },
+    {
+      "scenario": "RECOVERY_TREND",
+      "description": "Previously elevated measurements are actively recovering instead of deteriorating.",
+      "expected_escalation": 0,
+      "normality_score": -0.5372,
+      "threshold": -0.524649,
+      "anomaly_strength": 0.012551,
+      "anomaly_detected": true,
+      "anomaly_level": "ELEVATED"
+    },
+    {
+      "scenario": "HUMIDITY_PD_ESCALATION",
+      "description": "Humidity and partial-discharge indicators deteriorate together.",
+      "expected_escalation": 1,
+      "normality_score": -0.511307,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.013342,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "SHIFTED_BASELINE_SAFE",
+      "description": "A higher-than-usual operating baseline that remains stable and internally consistent.",
+      "expected_escalation": 0,
+      "normality_score": -0.50879,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.015859,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "HOT_AMBIENT_SAFE_DELTA",
+      "description": "High ambient temperature with a relatively healthy cable-to-ambient thermal delta.",
+      "expected_escalation": 0,
+      "normality_score": -0.494009,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.030639,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "PD_ESCALATION",
+      "description": "Partial-discharge activity rises strongly while other measurements remain stable.",
+      "expected_escalation": 1,
+      "normality_score": -0.483889,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.04076,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "CURRENT_RISE_NO_HEAT",
+      "description": "Current rises significantly but without corresponding thermal deterioration.",
+      "expected_escalation": 0,
+      "normality_score": -0.478869,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.04578,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "HIGH_HUMIDITY_ONLY",
+      "description": "Very high humidity without thermal, current or partial-discharge escalation.",
+      "expected_escalation": 0,
+      "normality_score": -0.471828,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.052821,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    },
+    {
+      "scenario": "NOISY_SAFE",
+      "description": "Noisy but bounded healthy telemetry with no persistent trend.",
+      "expected_escalation": 0,
+      "normality_score": -0.399349,
+      "threshold": -0.524649,
+      "anomaly_strength": -0.1253,
+      "anomaly_detected": false,
+      "anomaly_level": "NORMAL"
+    }
+  ],
+  "summary": {
+    "escalation_scenarios": 5,
+    "escalation_also_anomalous": 3,
+    "non_escalation_scenarios": 7,
+    "non_escalation_anomalous": 2
+  }
+}

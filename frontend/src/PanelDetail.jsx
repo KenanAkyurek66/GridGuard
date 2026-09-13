@@ -29,6 +29,40 @@ function formatNumber(
 }
 
 
+function formatPercent(
+  value,
+  digits = 1
+) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "--";
+  }
+
+  return `${Number(value).toFixed(digits)}%`;
+}
+
+
+function humanize(value) {
+  if (!value) {
+    return "UNKNOWN";
+  }
+
+  return String(value)
+    .replaceAll("_", " ");
+}
+
+
+function statusClass(value) {
+  return String(
+    value ?? "unknown"
+  )
+    .toLowerCase()
+    .replaceAll("_", "-");
+}
+
+
 function formatTime(value) {
   if (!value) {
     return "--";
@@ -119,6 +153,21 @@ function PanelDetail({
 
   const activeAlarm =
     detail?.active_alarm;
+
+  const intelligence =
+    detail?.intelligence;
+
+  const predictive =
+    intelligence?.predictive;
+
+  const anomaly =
+    intelligence?.anomaly;
+
+  const consensus =
+    intelligence?.consensus;
+
+  const explainability =
+    intelligence?.explainability;
 
   const telemetryChart =
     prepareTelemetryChart(
@@ -264,6 +313,354 @@ function PanelDetail({
                 </div>
 
               </div>
+
+            </section>
+
+
+            <section className="detail-section intelligence-section">
+
+              <div className="detail-section-title intelligence-title-row">
+
+                <div>
+
+                  <p className="eyebrow">
+                    GRIDGUARD INTELLIGENCE
+                  </p>
+
+                  <h3>
+                    Predictive & Anomaly Analysis
+                  </h3>
+
+                </div>
+
+                {intelligence?.available && (
+
+                  <span
+                    className={`intelligence-status ${statusClass(
+                      consensus?.status
+                    )}`}
+                  >
+                    {humanize(
+                      consensus?.status
+                    )}
+                  </span>
+
+                )}
+
+              </div>
+
+
+              {!intelligence?.available ? (
+
+                <div className="intelligence-unavailable">
+
+                  <strong>
+                    AI analysis unavailable
+                  </strong>
+
+                  <p>
+                    {intelligence?.reason ??
+                      "Not enough telemetry history is available for AI analysis."}
+                  </p>
+
+                </div>
+
+              ) : (
+
+                <>
+
+                  <div className="intelligence-hero">
+
+                    <div className="intelligence-consensus">
+
+                      <span>
+                        Consensus
+                      </span>
+
+                      <strong>
+                        {humanize(
+                          consensus?.status
+                        )}
+                      </strong>
+
+                      <p>
+                        {consensus?.summary ??
+                          "No consensus summary available."}
+                      </p>
+
+                    </div>
+
+
+                    <div className="intelligence-confidence">
+
+                      <span>
+                        Confidence
+                      </span>
+
+                      <strong>
+                        {humanize(
+                          consensus?.confidence
+                        )}
+                      </strong>
+
+                      <small>
+                        {consensus?.agreement_text ??
+                          "Agreement unavailable"}
+                      </small>
+
+                    </div>
+
+                  </div>
+
+
+                  <div className="intelligence-metrics">
+
+                    <article>
+
+                      <span>
+                        Predictive Risk
+                      </span>
+
+                      <strong>
+                        {formatPercent(
+                          predictive?.probability_pct,
+                          2
+                        )}
+                      </strong>
+
+                      <small>
+                        {humanize(
+                          predictive?.decision
+                        )}
+                      </small>
+
+                      <div className="probability-track">
+
+                        <div
+                          className="probability-fill"
+                          style={{
+                            width: `${Math.min(
+                              Math.max(
+                                Number(
+                                  predictive?.probability_pct ?? 0
+                                ),
+                                0
+                              ),
+                              100
+                            )}%`,
+                          }}
+                        />
+
+                      </div>
+
+                    </article>
+
+
+                    <article>
+
+                      <span>
+                        Prediction Horizon
+                      </span>
+
+                      <strong>
+                        {predictive?.prediction_horizon_cycles ??
+                          "--"}
+                      </strong>
+
+                      <small>
+                        telemetry cycles
+                      </small>
+
+                    </article>
+
+
+                    <article>
+
+                      <span>
+                        Anomaly Detection
+                      </span>
+
+                      <strong
+                        className={
+                          anomaly?.detected
+                            ? "ai-alert-text"
+                            : "safe-text"
+                        }
+                      >
+                        {humanize(
+                          anomaly?.level
+                        )}
+                      </strong>
+
+                      <small>
+                        {anomaly?.detected
+                          ? "Unusual behavior detected"
+                          : "Healthy pattern"}
+                      </small>
+
+                    </article>
+
+
+                    <article>
+
+                      <span>
+                        AI Data Quality
+                      </span>
+
+                      <strong
+                        className={
+                          predictive?.data_reliable
+                            ? "safe-text"
+                            : "ai-hold-text"
+                        }
+                      >
+                        {predictive?.data_reliable
+                          ? "RELIABLE"
+                          : "WITHHELD"}
+                      </strong>
+
+                      <small>
+                        {predictive?.data_reliable
+                          ? "Prediction enabled"
+                          : "Awaiting trustworthy samples"}
+                      </small>
+
+                    </article>
+
+                  </div>
+
+
+                  <div className="intelligence-agreement">
+
+                    <div>
+
+                      <span>
+                        Layer Agreement
+                      </span>
+
+                      <strong>
+                        {consensus?.strong_signal_count ?? 0}/3
+                      </strong>
+
+                    </div>
+
+                    <p>
+                      {predictive?.reason ??
+                        consensus?.summary}
+                    </p>
+
+                  </div>
+
+
+                  <div className="ai-driver-list">
+
+                    <div className="ai-driver-heading">
+
+                      <span>
+                        TOP AI DRIVERS
+                      </span>
+
+                      <small>
+                        XGBoost feature contributions
+                      </small>
+
+                    </div>
+
+                    {(explainability?.top_drivers ?? []).length > 0 ? (
+
+                      (explainability?.top_drivers ?? []).map(
+                        (driver, index) => (
+
+                          <div
+                            className="ai-driver-row"
+                            key={`${driver.feature}-${index}`}
+                          >
+
+                            <div className="ai-driver-rank">
+                              {index + 1}
+                            </div>
+
+                            <div className="ai-driver-copy">
+
+                              <strong>
+                                {driver.label}
+                              </strong>
+
+                              <span>
+                                Value: {formatNumber(
+                                  driver.value,
+                                  2
+                                )}
+                              </span>
+
+                            </div>
+
+                            <div
+                              className={`ai-driver-direction ${
+                                driver.direction ===
+                                "INCREASES_RISK"
+                                  ? "increase"
+                                  : driver.direction ===
+                                    "DECREASES_RISK"
+                                  ? "decrease"
+                                  : "neutral"
+                              }`}
+                            >
+
+                              <strong>
+                                {driver.contribution > 0
+                                  ? "+"
+                                  : ""}
+                                {formatNumber(
+                                  driver.contribution,
+                                  3
+                                )}
+                              </strong>
+
+                              <span>
+                                {driver.direction ===
+                                "INCREASES_RISK"
+                                  ? "INCREASES RISK"
+                                  : driver.direction ===
+                                    "DECREASES_RISK"
+                                  ? "DECREASES RISK"
+                                  : "NEUTRAL"}
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                        )
+                      )
+
+                    ) : (
+
+                      <div className="intelligence-unavailable compact">
+                        No feature-contribution data available.
+                      </div>
+
+                    )}
+
+                  </div>
+
+
+                  <div className="ai-prototype-note">
+
+                    <strong>
+                      Prototype AI Advisory
+                    </strong>
+
+                    <span>
+                      {intelligence?.prototype_notice ??
+                        "AI output is advisory and does not replace deterministic protection logic."}
+                    </span>
+
+                  </div>
+
+                </>
+
+              )}
 
             </section>
 

@@ -1,0 +1,29 @@
+{
+  "random_seed": 42,
+  "scenario_count": 3000,
+  "telemetry_rows": 128598,
+  "prediction_horizon": 5,
+  "early_warning_eligible_rows": 110971,
+  "positive_future_escalation_rows": 10723,
+  "positive_rate_pct": 9.66,
+  "high_or_critical_rows": 17627,
+  "scenario_distribution": {
+    "AMBIENT_HEATING": 160,
+    "CURRENT_THERMAL": 171,
+    "GRADUAL_OVERLOAD": 210,
+    "GRADUAL_PD": 166,
+    "HIGH_HUMIDITY": 109,
+    "HUMIDITY_PD": 120,
+    "LOAD_DRIVEN_OVERHEATING": 247,
+    "NORMAL": 529,
+    "NORMAL_WITH_NOISE": 332,
+    "RAPID_OVERLOAD": 152,
+    "RAPID_PD": 171,
+    "RECOVERY": 177,
+    "SENSOR_OUTLIER": 104,
+    "THERMAL_DEGRADATION": 212,
+    "THERMAL_PD": 140
+  },
+  "dataset_path": "C:\\Users\\akyur\\OneDrive\\Masaüstü\\GridGuard\\ml\\data\\gridguard_synthetic_telemetry.csv",
+  "important_note": "Synthetic prototype dataset. Not validated utility field data."
+}

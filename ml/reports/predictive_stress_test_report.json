@@ -1,0 +1,125 @@
+{
+  "important_note": "Prototype robustness test using manually designed synthetic OOD scenarios. This is not field validation.",
+  "model": "C:\\Users\\akyur\\OneDrive\\Masaüstü\\GridGuard\\ml\\models\\xgboost_early_warning.joblib",
+  "threshold": 0.505644,
+  "total_scenarios": 12,
+  "passed": 11,
+  "missed": 1,
+  "pass_rate_pct": 91.67,
+  "positive_cases": 5,
+  "positive_detected": 5,
+  "stress_recall": 1.0,
+  "negative_cases": 7,
+  "negative_correct": 6,
+  "stress_specificity": 0.857143,
+  "scenarios": [
+    {
+      "scenario": "HOT_AMBIENT_SAFE_DELTA",
+      "description": "High ambient temperature with a relatively healthy cable-to-ambient thermal delta.",
+      "expected_escalation": 0,
+      "probability": 0.000681,
+      "threshold": 0.505644,
+      "prediction": 0,
+      "result": "PASS"
+    },
+    {
+      "scenario": "CURRENT_RISE_NO_HEAT",
+      "description": "Current rises significantly but without corresponding thermal deterioration.",
+      "expected_escalation": 0,
+      "probability": 0.037488,
+      "threshold": 0.505644,
+      "prediction": 0,
+      "result": "PASS"
+    },
+    {
+      "scenario": "HIGH_HUMIDITY_ONLY",
+      "description": "Very high humidity without thermal, current or partial-discharge escalation.",
+      "expected_escalation": 0,
+      "probability": 0.000675,
+      "threshold": 0.505644,
+      "prediction": 0,
+      "result": "PASS"
+    },
+    {
+      "scenario": "SHIFTED_BASELINE_SAFE",
+      "description": "A higher-than-usual operating baseline that remains stable and internally consistent.",
+      "expected_escalation": 0,
+      "probability": 0.032192,
+      "threshold": 0.505644,
+      "prediction": 0,
+      "result": "PASS"
+    },
+    {
+      "scenario": "RECOVERY_TREND",
+      "description": "Previously elevated measurements are actively recovering instead of deteriorating.",
+      "expected_escalation": 0,
+      "probability": 0.003829,
+      "threshold": 0.505644,
+      "prediction": 0,
+      "result": "PASS"
+    },
+    {
+      "scenario": "SLOW_THERMAL_ESCALATION",
+      "description": "Slow but persistent cable heating with rising load and a widening thermal delta.",
+      "expected_escalation": 1,
+      "probability": 0.989061,
+      "threshold": 0.505644,
+      "prediction": 1,
+      "result": "PASS"
+    },
+    {
+      "scenario": "LOAD_THERMAL_ESCALATION",
+      "description": "Current and cable temperature rise together toward a severe thermal condition.",
+      "expected_escalation": 1,
+      "probability": 0.989553,
+      "threshold": 0.505644,
+      "prediction": 1,
+      "result": "PASS"
+    },
+    {
+      "scenario": "PD_ESCALATION",
+      "description": "Partial-discharge activity rises strongly while other measurements remain stable.",
+      "expected_escalation": 1,
+      "probability": 0.747578,
+      "threshold": 0.505644,
+      "prediction": 1,
+      "result": "PASS"
+    },
+    {
+      "scenario": "HUMIDITY_PD_ESCALATION",
+      "description": "Humidity and partial-discharge indicators deteriorate together.",
+      "expected_escalation": 1,
+      "probability": 0.88217,
+      "threshold": 0.505644,
+      "prediction": 1,
+      "result": "PASS"
+    },
+    {
+      "scenario": "SUBTLE_COMBINED_ESCALATION",
+      "description": "Several moderate signals deteriorate together before any single measurement becomes extreme.",
+      "expected_escalation": 1,
+      "probability": 0.94119,
+      "threshold": 0.505644,
+      "prediction": 1,
+      "result": "PASS"
+    },
+    {
+      "scenario": "SINGLE_SENSOR_SPIKE",
+      "description": "A one-cycle multi-sensor spike marked as SUSPECT that immediately returns to normal.",
+      "expected_escalation": 0,
+      "probability": 0.850064,
+      "threshold": 0.505644,
+      "prediction": 1,
+      "result": "MISS"
+    },
+    {
+      "scenario": "NOISY_SAFE",
+      "description": "Noisy but bounded healthy telemetry with no persistent trend.",
+      "expected_escalation": 0,
+      "probability": 0.013439,
+      "threshold": 0.505644,
+      "prediction": 0,
+      "result": "PASS"
+    }
+  ]
+}

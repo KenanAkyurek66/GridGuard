@@ -1,7 +1,12 @@
 fastapi
+joblib
+numpy
 paho-mqtt
+pandas
 pydantic
 pymodbus
 requests
+scikit-learn
 SQLAlchemy
 uvicorn
+xgboost

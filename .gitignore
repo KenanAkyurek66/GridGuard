@@ -25,3 +25,5 @@ Thumbs.db
 
 # Generated simulator data
 data/generated/
+# Generated ML datasets
+ml/data/*.csv

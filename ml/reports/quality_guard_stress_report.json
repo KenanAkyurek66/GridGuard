@@ -1,0 +1,321 @@
+{
+  "important_note": "Synthetic prototype robustness test. This is not real-world field validation.",
+  "predictive_threshold": 0.505644,
+  "recent_window": 3,
+  "guard_configuration": {
+    "consecutive_required": 2,
+    "strong_confidence_margin": 0.2,
+    "suspect_recent_data": "HOLD"
+  },
+  "total_scenarios": 12,
+  "passed": 12,
+  "missed": 0,
+  "pass_rate_pct": 100.0,
+  "decision_distribution": {
+    "SAFE": 6,
+    "HOLD": 1,
+    "ESCALATION": 5
+  },
+  "scenarios": [
+    {
+      "scenario": "HOT_AMBIENT_SAFE_DELTA",
+      "description": "High ambient temperature with a relatively healthy cable-to-ambient thermal delta.",
+      "expected_decision": "SAFE",
+      "guard_decision": "SAFE",
+      "recent_probabilities": [
+        0.000531,
+        0.000454,
+        0.000681
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "SAFE",
+        "latest_probability": 0.0006806253804825246,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 0,
+        "data_reliable": true,
+        "reason": "Predictive escalation probability is below the configured advisory threshold."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "CURRENT_RISE_NO_HEAT",
+      "description": "Current rises significantly but without corresponding thermal deterioration.",
+      "expected_decision": "SAFE",
+      "guard_decision": "SAFE",
+      "recent_probabilities": [
+        0.032397,
+        0.035744,
+        0.037488
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "SAFE",
+        "latest_probability": 0.0374881736934185,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 0,
+        "data_reliable": true,
+        "reason": "Predictive escalation probability is below the configured advisory threshold."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "HIGH_HUMIDITY_ONLY",
+      "description": "Very high humidity without thermal, current or partial-discharge escalation.",
+      "expected_decision": "SAFE",
+      "guard_decision": "SAFE",
+      "recent_probabilities": [
+        0.000675,
+        0.000675,
+        0.000675
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "SAFE",
+        "latest_probability": 0.0006745661958120763,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 0,
+        "data_reliable": true,
+        "reason": "Predictive escalation probability is below the configured advisory threshold."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "SHIFTED_BASELINE_SAFE",
+      "description": "A higher-than-usual operating baseline that remains stable and internally consistent.",
+      "expected_decision": "SAFE",
+      "guard_decision": "SAFE",
+      "recent_probabilities": [
+        0.041608,
+        0.039059,
+        0.032192
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "SAFE",
+        "latest_probability": 0.03219214826822281,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 0,
+        "data_reliable": true,
+        "reason": "Predictive escalation probability is below the configured advisory threshold."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "RECOVERY_TREND",
+      "description": "Previously elevated measurements are actively recovering instead of deteriorating.",
+      "expected_decision": "SAFE",
+      "guard_decision": "SAFE",
+      "recent_probabilities": [
+        0.005846,
+        0.004344,
+        0.003829
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "SAFE",
+        "latest_probability": 0.0038290098309516907,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 0,
+        "data_reliable": true,
+        "reason": "Predictive escalation probability is below the configured advisory threshold."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "SLOW_THERMAL_ESCALATION",
+      "description": "Slow but persistent cable heating with rising load and a widening thermal delta.",
+      "expected_decision": "ESCALATION",
+      "guard_decision": "ESCALATION",
+      "recent_probabilities": [
+        0.978121,
+        0.985802,
+        0.989061
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "ESCALATION",
+        "latest_probability": 0.9890612363815308,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 3,
+        "data_reliable": true,
+        "reason": "Predictive risk remained above threshold across consecutive trustworthy telemetry samples."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "LOAD_THERMAL_ESCALATION",
+      "description": "Current and cable temperature rise together toward a severe thermal condition.",
+      "expected_decision": "ESCALATION",
+      "guard_decision": "ESCALATION",
+      "recent_probabilities": [
+        0.972967,
+        0.983815,
+        0.989553
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "ESCALATION",
+        "latest_probability": 0.9895534515380859,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 3,
+        "data_reliable": true,
+        "reason": "Predictive risk remained above threshold across consecutive trustworthy telemetry samples."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "PD_ESCALATION",
+      "description": "Partial-discharge activity rises strongly while other measurements remain stable.",
+      "expected_decision": "ESCALATION",
+      "guard_decision": "ESCALATION",
+      "recent_probabilities": [
+        0.52823,
+        0.546513,
+        0.747578
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "ESCALATION",
+        "latest_probability": 0.7475783228874207,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 3,
+        "data_reliable": true,
+        "reason": "Predictive risk remained above threshold across consecutive trustworthy telemetry samples."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "HUMIDITY_PD_ESCALATION",
+      "description": "Humidity and partial-discharge indicators deteriorate together.",
+      "expected_decision": "ESCALATION",
+      "guard_decision": "ESCALATION",
+      "recent_probabilities": [
+        0.600648,
+        0.797025,
+        0.88217
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "ESCALATION",
+        "latest_probability": 0.882169783115387,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 3,
+        "data_reliable": true,
+        "reason": "Predictive risk remained above threshold across consecutive trustworthy telemetry samples."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "SUBTLE_COMBINED_ESCALATION",
+      "description": "Several moderate signals deteriorate together before any single measurement becomes extreme.",
+      "expected_decision": "ESCALATION",
+      "guard_decision": "ESCALATION",
+      "recent_probabilities": [
+        0.73254,
+        0.895079,
+        0.94119
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "ESCALATION",
+        "latest_probability": 0.9411895871162415,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 3,
+        "data_reliable": true,
+        "reason": "Predictive risk remained above threshold across consecutive trustworthy telemetry samples."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "SINGLE_SENSOR_SPIKE",
+      "description": "A one-cycle multi-sensor spike marked as SUSPECT that immediately returns to normal.",
+      "expected_decision": "HOLD",
+      "guard_decision": "HOLD",
+      "recent_probabilities": [
+        0.000647,
+        0.000647,
+        0.850064
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "SUSPECT"
+      ],
+      "decision_details": {
+        "decision": "HOLD",
+        "latest_probability": 0.850064218044281,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 0,
+        "data_reliable": false,
+        "reason": "Recent telemetry quality is not fully reliable. Predictive escalation is withheld until trustworthy samples confirm the trend."
+      },
+      "result": "PASS"
+    },
+    {
+      "scenario": "NOISY_SAFE",
+      "description": "Noisy but bounded healthy telemetry with no persistent trend.",
+      "expected_decision": "SAFE",
+      "guard_decision": "SAFE",
+      "recent_probabilities": [
+        0.005651,
+        0.027409,
+        0.013439
+      ],
+      "recent_quality": [
+        "GOOD",
+        "GOOD",
+        "GOOD"
+      ],
+      "decision_details": {
+        "decision": "SAFE",
+        "latest_probability": 0.013439257629215717,
+        "threshold": 0.505644,
+        "consecutive_high_predictions": 0,
+        "data_reliable": true,
+        "reason": "Predictive escalation probability is below the configured advisory threshold."
+      },
+      "result": "PASS"
+    }
+  ]
+}
