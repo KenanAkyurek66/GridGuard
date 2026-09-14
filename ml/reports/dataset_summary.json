@@ -24,6 +24,6 @@
     "THERMAL_DEGRADATION": 212,
     "THERMAL_PD": 140
   },
-  "dataset_path": "C:\\Users\\akyur\\OneDrive\\Masaüstü\\GridGuard\\ml\\data\\gridguard_synthetic_telemetry.csv",
+  "dataset_path": "ml/data/gridguard_synthetic_telemetry.csv",
   "important_note": "Synthetic prototype dataset. Not validated utility field data."
 }
