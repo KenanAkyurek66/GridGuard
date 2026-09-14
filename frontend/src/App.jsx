@@ -23,6 +23,8 @@ import PanelDetail, {
   fetchPanelDetail,
 } from "./PanelDetail";
 
+import PanelView from "./PanelView";
+
 
 const API_BASE_URL =
   "http://127.0.0.1:8000";
@@ -548,6 +550,17 @@ function App() {
             }
           >
             Overview
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              scrollToSection(
+                "panel-view"
+              )
+            }
+          >
+            Panel View
           </button>
 
           <button
@@ -1136,6 +1149,21 @@ function App() {
             </article>
 
           </section>
+
+        </section>
+
+
+        <section
+          className="dashboard-anchor"
+          id="panel-view"
+        >
+
+          <PanelView
+            panels={panels}
+            onOpenPanel={
+              openPanelDetail
+            }
+          />
 
         </section>
 
