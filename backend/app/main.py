@@ -1,15 +1,15 @@
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException
-from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-from backend.app.database import Base, engine, get_db
 from backend.app.ai_service import (
     analyze_gridguard_intelligence,
     get_ai_runtime_status,
 )
+from backend.app.database import Base, engine, get_db
 from backend.app.models import (
     Alarm,
     Panel,
@@ -26,7 +26,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="GridGuard API",
     description="GridGuard Edge Monitoring and Early Warning System",
-    version="0.6.0"
+    version="0.6.0",
 )
 
 app.add_middleware(
@@ -44,12 +44,15 @@ app.add_middleware(
 def build_history(
     db: Session,
     panel_id: str,
-    limit: int = 20
+    limit: int = 20,
 ) -> list[dict]:
     records = (
         db.query(Telemetry)
         .filter(Telemetry.panel_id == panel_id)
-        .order_by(Telemetry.timestamp.desc())
+        .order_by(
+            Telemetry.timestamp.desc(),
+            Telemetry.id.desc(),
+        )
         .limit(limit)
         .all()
     )
@@ -58,30 +61,31 @@ def build_history(
     # Risk Engine expects oldest -> newest.
     records.reverse()
 
-    history = [
+    return [
         {
             "current_a": record.current_a,
             "cable_temperature_c": record.cable_temperature_c,
             "ambient_temperature_c": record.ambient_temperature_c,
             "humidity_pct": record.humidity_pct,
             "pd_index": record.pd_index,
-            "arc_detected": record.arc_detected
+            "arc_detected": record.arc_detected,
         }
         for record in records
     ]
-
-    return history
 
 
 def build_ai_history(
     db: Session,
     panel_id: str,
-    limit: int = 20
+    limit: int = 20,
 ) -> list[dict]:
     records = (
         db.query(Telemetry)
         .filter(Telemetry.panel_id == panel_id)
-        .order_by(Telemetry.timestamp.desc())
+        .order_by(
+            Telemetry.timestamp.desc(),
+            Telemetry.id.desc(),
+        )
         .limit(limit)
         .all()
     )
@@ -107,20 +111,19 @@ def sync_alarm(
     db: Session,
     panel_id: str,
     risk_result: dict,
-    timestamp: datetime
+    timestamp: datetime,
 ) -> dict | None:
-
     abnormal_statuses = {
         "WARNING",
         "HIGH",
-        "CRITICAL"
+        "CRITICAL",
     }
 
     open_alarm = (
         db.query(Alarm)
         .filter(
             Alarm.panel_id == panel_id,
-            Alarm.status == "OPEN"
+            Alarm.status == "OPEN",
         )
         .order_by(Alarm.opened_at.desc())
         .first()
@@ -137,14 +140,13 @@ def sync_alarm(
 
             return {
                 "action": "RESOLVED",
-                "alarm_id": open_alarm.id
+                "alarm_id": open_alarm.id,
             }
 
         return None
 
     # WARNING / HIGH / CRITICAL
     if risk_result["status"] in abnormal_statuses:
-
         message = (
             risk_result["causes"][0]
             if risk_result["causes"]
@@ -162,7 +164,7 @@ def sync_alarm(
                 primary_risk=risk_result["primary_risk"],
                 risk_score=risk_result["risk_score"],
                 message=message,
-                status="OPEN"
+                status="OPEN",
             )
 
             db.add(new_alarm)
@@ -171,7 +173,7 @@ def sync_alarm(
 
             return {
                 "action": "OPENED",
-                "alarm_id": new_alarm.id
+                "alarm_id": new_alarm.id,
             }
 
         # Alarm already exists -> update the same alarm.
@@ -185,47 +187,21 @@ def sync_alarm(
 
         return {
             "action": "UPDATED",
-            "alarm_id": open_alarm.id
+            "alarm_id": open_alarm.id,
         }
 
     return None
 
 
-@app.get("/")
-def root():
-    return {
-        "service": "GridGuard API",
-        "status": "running",
-        "version": "0.6.0"
-    }
-
-
-@app.get("/health")
-def health_check(
-    db: Session = Depends(get_db)
-):
-    connected_panels = db.query(Panel).count()
-
-    return {
-        "status": "healthy",
-        "connected_panels": connected_panels
-    }
-
-
-@app.get("/ai/status")
-def ai_status():
-    return get_ai_runtime_status()
-
 def normalize_event_timestamp(
-    value: datetime
+    value: datetime,
 ) -> datetime:
     """
-    Normalize timestamps for reliable chronological comparison.
+    Normalize timestamps to UTC for reliable chronological comparison.
 
     SQLite may return stored DateTime values without timezone
     information even when timezone=True is configured.
-    Naive timestamps are therefore treated as UTC inside the
-    prototype ingestion ordering check.
+    Naive timestamps are therefore treated as UTC.
     """
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
@@ -233,15 +209,144 @@ def normalize_event_timestamp(
     return value.astimezone(timezone.utc)
 
 
+def to_storage_timestamp(
+    value: datetime,
+) -> datetime:
+    """
+    Convert an event timestamp to UTC-naive form for consistent
+    SQLite storage and equality checks.
+    """
+    return normalize_event_timestamp(
+        value
+    ).replace(tzinfo=None)
+
+
+def telemetry_payload_matches(
+    existing: Telemetry,
+    incoming: TelemetryData,
+) -> bool:
+    """
+    Return True when an existing event and incoming event contain
+    the same telemetry payload.
+    """
+    return all(
+        [
+            existing.current_a == incoming.current_a,
+            existing.cable_temperature_c
+            == incoming.cable_temperature_c,
+            existing.ambient_temperature_c
+            == incoming.ambient_temperature_c,
+            existing.humidity_pct == incoming.humidity_pct,
+            existing.pd_index == incoming.pd_index,
+            existing.arc_detected == incoming.arc_detected,
+            existing.data_quality == incoming.data_quality.value,
+        ]
+    )
+
+
+@app.get("/")
+def root():
+    return {
+        "service": "GridGuard API",
+        "status": "running",
+        "version": "0.6.0",
+    }
+
+
+@app.get("/health")
+def health_check(
+    db: Session = Depends(get_db),
+):
+    connected_panels = db.query(Panel).count()
+
+    return {
+        "status": "healthy",
+        "connected_panels": connected_panels,
+    }
+
+
+@app.get("/ai/status")
+def ai_status():
+    return get_ai_runtime_status()
+
+
 @app.post("/telemetry")
 def receive_telemetry(
     data: TelemetryData,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     received_at = datetime.now(timezone.utc)
 
+    incoming_timestamp = normalize_event_timestamp(
+        data.timestamp
+    )
+
+    storage_timestamp = to_storage_timestamp(
+        data.timestamp
+    )
+
     # ---------------------------------------------------------
-    # 1. Determine event ordering BEFORE inserting the new row.
+    # 1. Duplicate / timestamp-collision protection.
+    # ---------------------------------------------------------
+
+    existing_same_event = (
+        db.query(Telemetry)
+        .filter(
+            Telemetry.panel_id == data.panel_id,
+            Telemetry.timestamp == storage_timestamp,
+        )
+        .order_by(Telemetry.id.desc())
+        .first()
+    )
+
+    if existing_same_event is not None:
+        # Same panel + same timestamp + same payload:
+        # treat the request as an idempotent retry.
+        if telemetry_payload_matches(
+            existing_same_event,
+            data,
+        ):
+            return {
+                "status": "duplicate",
+                "received_at": received_at,
+                "telemetry": data,
+                "processing": {
+                    "duplicate": True,
+                    "timestamp_conflict": False,
+                    "out_of_order": False,
+                    "history_stored": False,
+                    "latest_state_updated": False,
+                    "risk_evaluated": False,
+                    "alarm_updated": False,
+                    "existing_telemetry_id": (
+                        existing_same_event.id
+                    ),
+                },
+                "risk": None,
+                "alarm": None,
+            }
+
+        # Same event identity but different telemetry values:
+        # reject instead of silently overwriting history.
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": "TELEMETRY_TIMESTAMP_CONFLICT",
+                "message": (
+                    "Telemetry already exists for this "
+                    "panel and timestamp with a different "
+                    "payload."
+                ),
+                "panel_id": data.panel_id,
+                "timestamp": incoming_timestamp.isoformat(),
+                "existing_telemetry_id": (
+                    existing_same_event.id
+                ),
+            },
+        )
+
+    # ---------------------------------------------------------
+    # 2. Determine chronological ordering.
     # ---------------------------------------------------------
 
     latest_existing_telemetry = (
@@ -251,7 +356,7 @@ def receive_telemetry(
         )
         .order_by(
             Telemetry.timestamp.desc(),
-            Telemetry.id.desc()
+            Telemetry.id.desc(),
         )
         .first()
     )
@@ -259,26 +364,22 @@ def receive_telemetry(
     out_of_order = False
 
     if latest_existing_telemetry is not None:
-        incoming_timestamp = normalize_event_timestamp(
-            data.timestamp
-        )
-
         latest_timestamp = normalize_event_timestamp(
             latest_existing_telemetry.timestamp
         )
 
         out_of_order = (
-            incoming_timestamp <
-            latest_timestamp
+            incoming_timestamp
+            < latest_timestamp
         )
 
     # ---------------------------------------------------------
-    # 2. Always store the raw telemetry.
+    # 3. Store unique raw telemetry.
     # ---------------------------------------------------------
 
     telemetry_record = Telemetry(
         panel_id=data.panel_id,
-        timestamp=data.timestamp,
+        timestamp=storage_timestamp,
         received_at=received_at,
         current_a=data.current_a,
         cable_temperature_c=(
@@ -290,13 +391,13 @@ def receive_telemetry(
         humidity_pct=data.humidity_pct,
         pd_index=data.pd_index,
         arc_detected=data.arc_detected,
-        data_quality=data.data_quality.value
+        data_quality=data.data_quality.value,
     )
 
     db.add(telemetry_record)
 
     # ---------------------------------------------------------
-    # 3. Load or create panel.
+    # 4. Load or create panel.
     # ---------------------------------------------------------
 
     panel = (
@@ -321,18 +422,18 @@ def receive_telemetry(
             humidity_pct=data.humidity_pct,
             pd_index=data.pd_index,
             arc_detected=data.arc_detected,
-            data_quality=data.data_quality.value
+            data_quality=data.data_quality.value,
         )
 
         db.add(panel)
 
-        # A newly discovered panel must establish an initial
-        # current state.
+        # A newly discovered panel establishes its initial
+        # operational state.
         out_of_order = False
 
     else:
-        # last_seen represents communication activity.
-        # Even a delayed packet means that the source was seen.
+        # A unique delayed packet still proves that the source
+        # communicated with GridGuard.
         panel.last_seen = received_at
 
         # Only chronologically current telemetry may replace
@@ -345,29 +446,26 @@ def receive_telemetry(
             panel.ambient_temperature_c = (
                 data.ambient_temperature_c
             )
-            panel.humidity_pct = data.humidity_pct
-            panel.pd_index = data.pd_index
-            panel.arc_detected = data.arc_detected
+            panel.humidity_pct = (
+                data.humidity_pct
+            )
+            panel.pd_index = (
+                data.pd_index
+            )
+            panel.arc_detected = (
+                data.arc_detected
+            )
             panel.data_quality = (
                 data.data_quality.value
             )
 
-    # Store raw telemetry and any permitted panel update.
+    # Persist the unique raw event and any permitted panel
+    # state update.
     db.commit()
+    db.refresh(telemetry_record)
 
     # ---------------------------------------------------------
-    # 4. Out-of-order telemetry is history-only.
-    # ---------------------------------------------------------
-    #
-    # The delayed event remains available in telemetry history,
-    # but it must not rewind:
-    #
-    # - current panel state
-    # - latest deterministic risk state
-    # - alarm lifecycle
-    #
-    # It can naturally become part of chronological historical
-    # context when a future current sample is processed.
+    # 5. Out-of-order telemetry is history-only.
     # ---------------------------------------------------------
 
     if out_of_order:
@@ -376,69 +474,82 @@ def receive_telemetry(
             "received_at": received_at,
             "telemetry": data,
             "processing": {
+                "duplicate": False,
+                "timestamp_conflict": False,
                 "out_of_order": True,
                 "history_stored": True,
                 "latest_state_updated": False,
                 "risk_evaluated": False,
                 "alarm_updated": False,
+                "telemetry_id": telemetry_record.id,
                 "latest_event_timestamp": (
                     latest_existing_telemetry.timestamp
                     if latest_existing_telemetry
                     is not None
                     else None
-                )
+                ),
             },
             "risk": None,
-            "alarm": None
+            "alarm": None,
         }
 
     # ---------------------------------------------------------
-    # 5. Build chronological history.
+    # 6. Build chronological history.
     # ---------------------------------------------------------
 
     history = build_history(
         db=db,
         panel_id=data.panel_id,
-        limit=20
+        limit=20,
     )
 
     # ---------------------------------------------------------
-    # 6. Automatically evaluate deterministic risk.
+    # 7. Automatically evaluate deterministic risk.
     # ---------------------------------------------------------
 
-    risk_result = evaluate_risk(history)
+    risk_result = evaluate_risk(
+        history
+    )
 
     # ---------------------------------------------------------
-    # 7. Persist risk assessment.
+    # 8. Persist risk assessment.
     # ---------------------------------------------------------
 
     risk_record = RiskAssessment(
         panel_id=data.panel_id,
         timestamp=received_at,
-        risk_score=risk_result["risk_score"],
-        status=risk_result["status"],
-        primary_risk=risk_result["primary_risk"],
-        causes=risk_result["causes"],
+        risk_score=risk_result[
+            "risk_score"
+        ],
+        status=risk_result[
+            "status"
+        ],
+        primary_risk=risk_result[
+            "primary_risk"
+        ],
+        causes=risk_result[
+            "causes"
+        ],
         component_scores=risk_result.get(
             "component_scores"
         ),
         metrics=risk_result.get(
             "metrics"
-        )
+        ),
     )
 
     db.add(risk_record)
     db.commit()
 
     # ---------------------------------------------------------
-    # 8. Synchronize alarm lifecycle.
+    # 9. Synchronize alarm lifecycle.
     # ---------------------------------------------------------
 
     alarm_result = sync_alarm(
         db=db,
         panel_id=data.panel_id,
         risk_result=risk_result,
-        timestamp=received_at
+        timestamp=received_at,
     )
 
     return {
@@ -446,22 +557,27 @@ def receive_telemetry(
         "received_at": received_at,
         "telemetry": data,
         "processing": {
+            "duplicate": False,
+            "timestamp_conflict": False,
             "out_of_order": False,
             "history_stored": True,
             "latest_state_updated": True,
             "risk_evaluated": True,
             "alarm_updated": (
                 alarm_result is not None
-            )
+            ),
+            "telemetry_id": (
+                telemetry_record.id
+            ),
         },
         "risk": risk_result,
-        "alarm": alarm_result
+        "alarm": alarm_result,
     }
 
 
 @app.get("/panels")
 def get_panels(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     panels = (
         db.query(Panel)
@@ -476,22 +592,26 @@ def get_panels(
                 "panel_id": panel.panel_id,
                 "last_seen": panel.last_seen,
                 "current_a": panel.current_a,
-                "cable_temperature_c": panel.cable_temperature_c,
-                "ambient_temperature_c": panel.ambient_temperature_c,
+                "cable_temperature_c": (
+                    panel.cable_temperature_c
+                ),
+                "ambient_temperature_c": (
+                    panel.ambient_temperature_c
+                ),
                 "humidity_pct": panel.humidity_pct,
                 "pd_index": panel.pd_index,
                 "arc_detected": panel.arc_detected,
-                "data_quality": panel.data_quality
+                "data_quality": panel.data_quality,
             }
             for panel in panels
-        ]
+        ],
     }
 
 
 @app.get("/panels/{panel_id}")
 def get_panel(
     panel_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     panel = (
         db.query(Panel)
@@ -502,19 +622,23 @@ def get_panel(
     if panel is None:
         raise HTTPException(
             status_code=404,
-            detail="Panel not found"
+            detail="Panel not found",
         )
 
     return {
         "panel_id": panel.panel_id,
         "last_seen": panel.last_seen,
         "current_a": panel.current_a,
-        "cable_temperature_c": panel.cable_temperature_c,
-        "ambient_temperature_c": panel.ambient_temperature_c,
+        "cable_temperature_c": (
+            panel.cable_temperature_c
+        ),
+        "ambient_temperature_c": (
+            panel.ambient_temperature_c
+        ),
         "humidity_pct": panel.humidity_pct,
         "pd_index": panel.pd_index,
         "arc_detected": panel.arc_detected,
-        "data_quality": panel.data_quality
+        "data_quality": panel.data_quality,
     }
 
 
@@ -522,7 +646,7 @@ def get_panel(
 def get_panel_telemetry(
     panel_id: str,
     limit: int = 20,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     panel = (
         db.query(Panel)
@@ -533,7 +657,7 @@ def get_panel_telemetry(
     if panel is None:
         raise HTTPException(
             status_code=404,
-            detail="Panel not found"
+            detail="Panel not found",
         )
 
     limit = max(1, min(limit, 500))
@@ -541,7 +665,10 @@ def get_panel_telemetry(
     records = (
         db.query(Telemetry)
         .filter(Telemetry.panel_id == panel_id)
-        .order_by(Telemetry.timestamp.desc())
+        .order_by(
+            Telemetry.timestamp.desc(),
+            Telemetry.id.desc(),
+        )
         .limit(limit)
         .all()
     )
@@ -554,15 +681,19 @@ def get_panel_telemetry(
                 "timestamp": record.timestamp,
                 "received_at": record.received_at,
                 "current_a": record.current_a,
-                "cable_temperature_c": record.cable_temperature_c,
-                "ambient_temperature_c": record.ambient_temperature_c,
+                "cable_temperature_c": (
+                    record.cable_temperature_c
+                ),
+                "ambient_temperature_c": (
+                    record.ambient_temperature_c
+                ),
                 "humidity_pct": record.humidity_pct,
                 "pd_index": record.pd_index,
                 "arc_detected": record.arc_detected,
-                "data_quality": record.data_quality
+                "data_quality": record.data_quality,
             }
             for record in records
-        ]
+        ],
     }
 
 
@@ -570,7 +701,7 @@ def get_panel_telemetry(
 def get_panel_risk(
     panel_id: str,
     limit: int = 20,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     panel = (
         db.query(Panel)
@@ -581,7 +712,7 @@ def get_panel_risk(
     if panel is None:
         raise HTTPException(
             status_code=404,
-            detail="Panel not found"
+            detail="Panel not found",
         )
 
     limit = max(3, min(limit, 100))
@@ -589,13 +720,16 @@ def get_panel_risk(
     history = build_history(
         db=db,
         panel_id=panel_id,
-        limit=limit
+        limit=limit,
     )
 
     if not history:
         raise HTTPException(
             status_code=404,
-            detail="No telemetry history available for this panel"
+            detail=(
+                "No telemetry history available "
+                "for this panel"
+            ),
         )
 
     risk_result = evaluate_risk(history)
@@ -603,7 +737,7 @@ def get_panel_risk(
     return {
         "panel_id": panel_id,
         "analyzed_points": len(history),
-        **risk_result
+        **risk_result,
     }
 
 
@@ -611,7 +745,7 @@ def get_panel_risk(
 def get_panel_intelligence(
     panel_id: str,
     history_limit: int = 20,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     panel = (
         db.query(Panel)
@@ -622,21 +756,29 @@ def get_panel_intelligence(
     if panel is None:
         raise HTTPException(
             status_code=404,
-            detail="Panel not found"
+            detail="Panel not found",
         )
 
-    history_limit = max(5, min(history_limit, 100))
+    history_limit = max(
+        5,
+        min(history_limit, 100),
+    )
 
     telemetry_rows = build_ai_history(
         db=db,
         panel_id=panel_id,
-        limit=history_limit
+        limit=history_limit,
     )
 
     latest_risk = (
         db.query(RiskAssessment)
-        .filter(RiskAssessment.panel_id == panel_id)
-        .order_by(RiskAssessment.id.desc())
+        .filter(
+            RiskAssessment.panel_id
+            == panel_id
+        )
+        .order_by(
+            RiskAssessment.id.desc()
+        )
         .first()
     )
 
@@ -644,28 +786,46 @@ def get_panel_intelligence(
         return {
             "panel_id": panel_id,
             "available": False,
-            "reason": "No risk assessment available.",
-            "history_points": len(telemetry_rows),
-            "generated_at": datetime.now(timezone.utc),
+            "reason": (
+                "No risk assessment available."
+            ),
+            "history_points": (
+                len(telemetry_rows)
+            ),
+            "generated_at": datetime.now(
+                timezone.utc
+            ),
         }
 
     risk_result = {
         "risk_score": latest_risk.risk_score,
         "status": latest_risk.status,
-        "primary_risk": latest_risk.primary_risk,
+        "primary_risk": (
+            latest_risk.primary_risk
+        ),
         "causes": latest_risk.causes or [],
-        "component_scores": latest_risk.component_scores or {},
-        "metrics": latest_risk.metrics or {},
+        "component_scores": (
+            latest_risk.component_scores
+            or {}
+        ),
+        "metrics": (
+            latest_risk.metrics
+            or {}
+        ),
     }
 
-    intelligence = analyze_gridguard_intelligence(
-        telemetry_rows=telemetry_rows,
-        risk_result=risk_result,
+    intelligence = (
+        analyze_gridguard_intelligence(
+            telemetry_rows=telemetry_rows,
+            risk_result=risk_result,
+        )
     )
 
     return {
         "panel_id": panel_id,
-        "generated_at": datetime.now(timezone.utc),
+        "generated_at": datetime.now(
+            timezone.utc
+        ),
         **intelligence,
     }
 
@@ -674,7 +834,7 @@ def get_panel_intelligence(
 def get_alarms(
     status: str | None = None,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     limit = max(1, min(limit, 500))
 
@@ -686,8 +846,9 @@ def get_alarms(
         )
 
     alarms = (
-        query
-        .order_by(Alarm.opened_at.desc())
+        query.order_by(
+            Alarm.opened_at.desc()
+        )
         .limit(limit)
         .all()
     )
@@ -699,16 +860,20 @@ def get_alarms(
                 "id": alarm.id,
                 "panel_id": alarm.panel_id,
                 "opened_at": alarm.opened_at,
-                "last_seen_at": alarm.last_seen_at,
+                "last_seen_at": (
+                    alarm.last_seen_at
+                ),
                 "resolved_at": alarm.resolved_at,
                 "severity": alarm.severity,
-                "primary_risk": alarm.primary_risk,
+                "primary_risk": (
+                    alarm.primary_risk
+                ),
                 "risk_score": alarm.risk_score,
                 "message": alarm.message,
-                "status": alarm.status
+                "status": alarm.status,
             }
             for alarm in alarms
-        ]
+        ],
     }
 
 
@@ -716,7 +881,7 @@ def get_alarms(
 def get_panel_risk_history(
     panel_id: str,
     limit: int = 50,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     panel = (
         db.query(Panel)
@@ -727,7 +892,7 @@ def get_panel_risk_history(
     if panel is None:
         raise HTTPException(
             status_code=404,
-            detail="Panel not found"
+            detail="Panel not found",
         )
 
     limit = max(1, min(limit, 500))
@@ -735,10 +900,12 @@ def get_panel_risk_history(
     records = (
         db.query(RiskAssessment)
         .filter(
-            RiskAssessment.panel_id == panel_id
+            RiskAssessment.panel_id
+            == panel_id
         )
         .order_by(
-            RiskAssessment.timestamp.desc()
+            RiskAssessment.timestamp.desc(),
+            RiskAssessment.id.desc(),
         )
         .limit(limit)
         .all()
@@ -752,27 +919,37 @@ def get_panel_risk_history(
                 "timestamp": record.timestamp,
                 "risk_score": record.risk_score,
                 "status": record.status,
-                "primary_risk": record.primary_risk,
+                "primary_risk": (
+                    record.primary_risk
+                ),
                 "causes": record.causes,
-                "component_scores": record.component_scores,
-                "metrics": record.metrics
+                "component_scores": (
+                    record.component_scores
+                ),
+                "metrics": record.metrics,
             }
             for record in records
-        ]
+        ],
     }
+
 
 @app.get("/dashboard/summary")
 def get_dashboard_summary(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     connected_panels = db.query(Panel).count()
 
-    # Her panel için en son oluşturulan risk kaydının ID'sini bul.
+    # For each panel, identify the most recently
+    # created risk assessment.
     latest_risk_ids = (
         db.query(
-            func.max(RiskAssessment.id).label("latest_id")
+            func.max(
+                RiskAssessment.id
+            ).label("latest_id")
         )
-        .group_by(RiskAssessment.panel_id)
+        .group_by(
+            RiskAssessment.panel_id
+        )
         .subquery()
     )
 
@@ -780,7 +957,9 @@ def get_dashboard_summary(
         db.query(RiskAssessment)
         .filter(
             RiskAssessment.id.in_(
-                db.query(latest_risk_ids.c.latest_id)
+                db.query(
+                    latest_risk_ids.c.latest_id
+                )
             )
         )
         .all()
@@ -802,10 +981,10 @@ def get_dashboard_summary(
 
     panels_with_risk = len(latest_risks)
 
-    # Hiç risk analizi bulunmayan kayıtlı panolar.
+    # Registered panels with no risk assessment yet.
     distribution["UNKNOWN"] += max(
         connected_panels - panels_with_risk,
-        0
+        0,
     )
 
     active_alarms = (
@@ -818,9 +997,9 @@ def get_dashboard_summary(
         latest_risks,
         key=lambda item: (
             item.risk_score,
-            item.id
+            item.id,
         ),
-        reverse=True
+        reverse=True,
     )[:5]
 
     highest_risk_panels = [
@@ -828,7 +1007,9 @@ def get_dashboard_summary(
             "panel_id": record.panel_id,
             "risk_score": record.risk_score,
             "status": record.status,
-            "primary_risk": record.primary_risk,
+            "primary_risk": (
+                record.primary_risk
+            ),
             "timestamp": record.timestamp,
         }
         for record in highest_risk_records
@@ -840,21 +1021,28 @@ def get_dashboard_summary(
             "normal": distribution["NORMAL"],
             "warning": distribution["WARNING"],
             "high": distribution["HIGH"],
-            "critical": distribution["CRITICAL"],
+            "critical": (
+                distribution["CRITICAL"]
+            ),
             "unknown": distribution["UNKNOWN"],
         },
         "active_alarms": active_alarms,
-        "highest_risk_panels": highest_risk_panels,
+        "highest_risk_panels": (
+            highest_risk_panels
+        ),
         "system_status": "ONLINE",
-        "generated_at": datetime.now(timezone.utc),
+        "generated_at": datetime.now(
+            timezone.utc
+        ),
     }
+
 
 @app.get("/dashboard/panels")
 def get_dashboard_panels(
     status: str | None = None,
     search: str | None = None,
     limit: int = 200,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     limit = max(1, min(limit, 500))
 
@@ -870,9 +1058,13 @@ def get_dashboard_panels(
 
     latest_risk_ids = (
         db.query(
-            func.max(RiskAssessment.id).label("latest_id")
+            func.max(
+                RiskAssessment.id
+            ).label("latest_id")
         )
-        .group_by(RiskAssessment.panel_id)
+        .group_by(
+            RiskAssessment.panel_id
+        )
         .subquery()
     )
 
@@ -880,7 +1072,9 @@ def get_dashboard_panels(
         db.query(RiskAssessment)
         .filter(
             RiskAssessment.id.in_(
-                db.query(latest_risk_ids.c.latest_id)
+                db.query(
+                    latest_risk_ids.c.latest_id
+                )
             )
         )
         .all()
@@ -913,8 +1107,12 @@ def get_dashboard_panels(
     rows = []
 
     for panel in panels:
-        risk = risk_by_panel.get(panel.panel_id)
-        alarm = alarm_by_panel.get(panel.panel_id)
+        risk = risk_by_panel.get(
+            panel.panel_id
+        )
+        alarm = alarm_by_panel.get(
+            panel.panel_id
+        )
 
         if risk is None:
             risk_score = 0
@@ -923,14 +1121,15 @@ def get_dashboard_panels(
         else:
             risk_score = risk.risk_score
             risk_status = risk.status
-            primary_risk = risk.primary_risk
+            primary_risk = (
+                risk.primary_risk
+            )
 
         row = {
             "panel_id": panel.panel_id,
             "status": risk_status,
             "risk_score": risk_score,
             "primary_risk": primary_risk,
-
             "current_a": panel.current_a,
             "cable_temperature_c": (
                 panel.cable_temperature_c
@@ -938,14 +1137,20 @@ def get_dashboard_panels(
             "ambient_temperature_c": (
                 panel.ambient_temperature_c
             ),
-            "humidity_pct": panel.humidity_pct,
+            "humidity_pct": (
+                panel.humidity_pct
+            ),
             "pd_index": panel.pd_index,
-            "arc_detected": panel.arc_detected,
-            "data_quality": panel.data_quality,
-
+            "arc_detected": (
+                panel.arc_detected
+            ),
+            "data_quality": (
+                panel.data_quality
+            ),
             "last_seen": panel.last_seen,
-
-            "has_open_alarm": alarm is not None,
+            "has_open_alarm": (
+                alarm is not None
+            ),
             "alarm_id": (
                 alarm.id
                 if alarm is not None
@@ -965,16 +1170,21 @@ def get_dashboard_panels(
     # ---------------------------------------------------------
 
     if status:
-        requested_status = status.upper()
+        requested_status = (
+            status.upper()
+        )
 
         rows = [
             row
             for row in rows
-            if row["status"] == requested_status
+            if row["status"]
+            == requested_status
         ]
 
     if search:
-        search_value = search.strip().lower()
+        search_value = (
+            search.strip().lower()
+        )
 
         rows = [
             row
@@ -999,12 +1209,12 @@ def get_dashboard_panels(
         key=lambda row: (
             status_priority.get(
                 row["status"],
-                -1
+                -1,
             ),
             row["risk_score"],
             row["panel_id"],
         ),
-        reverse=True
+        reverse=True,
     )
 
     rows = rows[:limit]
@@ -1012,18 +1222,23 @@ def get_dashboard_panels(
     return {
         "count": len(rows),
         "panels": rows,
-        "generated_at": datetime.now(timezone.utc),
+        "generated_at": datetime.now(
+            timezone.utc
+        ),
     }
 
-@app.get("/dashboard/panels/{panel_id}/detail")
+
+@app.get(
+    "/dashboard/panels/{panel_id}/detail"
+)
 def get_dashboard_panel_detail(
     panel_id: str,
     history_limit: int = 30,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     history_limit = max(
         5,
-        min(history_limit, 200)
+        min(history_limit, 200),
     )
 
     # ---------------------------------------------------------
@@ -1041,7 +1256,7 @@ def get_dashboard_panel_detail(
     if panel is None:
         raise HTTPException(
             status_code=404,
-            detail="Panel not found"
+            detail="Panel not found",
         )
 
     # ---------------------------------------------------------
@@ -1051,7 +1266,8 @@ def get_dashboard_panel_detail(
     latest_risk = (
         db.query(RiskAssessment)
         .filter(
-            RiskAssessment.panel_id == panel_id
+            RiskAssessment.panel_id
+            == panel_id
         )
         .order_by(
             RiskAssessment.id.desc()
@@ -1067,7 +1283,7 @@ def get_dashboard_panel_detail(
         db.query(Alarm)
         .filter(
             Alarm.panel_id == panel_id,
-            Alarm.status == "OPEN"
+            Alarm.status == "OPEN",
         )
         .order_by(
             Alarm.opened_at.desc()
@@ -1085,7 +1301,8 @@ def get_dashboard_panel_detail(
             Telemetry.panel_id == panel_id
         )
         .order_by(
-            Telemetry.timestamp.desc()
+            Telemetry.timestamp.desc(),
+            Telemetry.id.desc(),
         )
         .limit(history_limit)
         .all()
@@ -1104,10 +1321,16 @@ def get_dashboard_panel_detail(
             "ambient_temperature_c": (
                 record.ambient_temperature_c
             ),
-            "humidity_pct": record.humidity_pct,
+            "humidity_pct": (
+                record.humidity_pct
+            ),
             "pd_index": record.pd_index,
-            "arc_detected": record.arc_detected,
-            "data_quality": record.data_quality,
+            "arc_detected": (
+                record.arc_detected
+            ),
+            "data_quality": (
+                record.data_quality
+            ),
         }
         for record in telemetry_records
     ]
@@ -1119,7 +1342,8 @@ def get_dashboard_panel_detail(
     risk_records = (
         db.query(RiskAssessment)
         .filter(
-            RiskAssessment.panel_id == panel_id
+            RiskAssessment.panel_id
+            == panel_id
         )
         .order_by(
             RiskAssessment.id.desc()
@@ -1133,9 +1357,13 @@ def get_dashboard_panel_detail(
     risk_history = [
         {
             "timestamp": record.timestamp,
-            "risk_score": record.risk_score,
+            "risk_score": (
+                record.risk_score
+            ),
             "status": record.status,
-            "primary_risk": record.primary_risk,
+            "primary_risk": (
+                record.primary_risk
+            ),
         }
         for record in risk_records
     ]
@@ -1158,7 +1386,9 @@ def get_dashboard_panel_detail(
 
     else:
         risk_data = {
-            "risk_score": latest_risk.risk_score,
+            "risk_score": (
+                latest_risk.risk_score
+            ),
             "status": latest_risk.status,
             "primary_risk": (
                 latest_risk.primary_risk
@@ -1171,8 +1401,7 @@ def get_dashboard_panel_detail(
                 or {}
             ),
             "metrics": (
-                latest_risk.metrics
-                or {}
+                latest_risk.metrics or {}
             ),
         }
 
@@ -1186,14 +1415,18 @@ def get_dashboard_panel_detail(
     else:
         alarm_data = {
             "id": active_alarm.id,
-            "severity": active_alarm.severity,
+            "severity": (
+                active_alarm.severity
+            ),
             "primary_risk": (
                 active_alarm.primary_risk
             ),
             "risk_score": (
                 active_alarm.risk_score
             ),
-            "message": active_alarm.message,
+            "message": (
+                active_alarm.message
+            ),
             "status": active_alarm.status,
             "opened_at": (
                 active_alarm.opened_at
@@ -1215,19 +1448,28 @@ def get_dashboard_panel_detail(
     if latest_risk is None:
         intelligence = {
             "available": False,
-            "reason": "No risk assessment available.",
-            "history_points": len(telemetry_history),
+            "reason": (
+                "No risk assessment available."
+            ),
+            "history_points": (
+                len(telemetry_history)
+            ),
         }
     else:
         ai_history = build_ai_history(
             db=db,
             panel_id=panel_id,
-            limit=max(20, history_limit)
+            limit=max(
+                20,
+                history_limit,
+            ),
         )
 
-        intelligence = analyze_gridguard_intelligence(
-            telemetry_rows=ai_history,
-            risk_result=risk_data,
+        intelligence = (
+            analyze_gridguard_intelligence(
+                telemetry_rows=ai_history,
+                risk_result=risk_data,
+            )
         )
 
     # ---------------------------------------------------------
@@ -1245,22 +1487,24 @@ def get_dashboard_panel_detail(
             "ambient_temperature_c": (
                 panel.ambient_temperature_c
             ),
-            "humidity_pct": panel.humidity_pct,
+            "humidity_pct": (
+                panel.humidity_pct
+            ),
             "pd_index": panel.pd_index,
-            "arc_detected": panel.arc_detected,
-            "data_quality": panel.data_quality,
+            "arc_detected": (
+                panel.arc_detected
+            ),
+            "data_quality": (
+                panel.data_quality
+            ),
         },
-
         "risk": risk_data,
-
         "intelligence": intelligence,
-
         "active_alarm": alarm_data,
-
-        "telemetry_history": telemetry_history,
-
+        "telemetry_history": (
+            telemetry_history
+        ),
         "risk_history": risk_history,
-
         "generated_at": datetime.now(
             timezone.utc
         ),
