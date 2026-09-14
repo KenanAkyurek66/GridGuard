@@ -30,9 +30,9 @@ function formatNumber(value, digits = 1) {
 }
 
 
-function statusClass(status) {
+function statusClass(value) {
   return String(
-    status ?? "NORMAL"
+    value ?? "NORMAL"
   ).toLowerCase();
 }
 
@@ -42,14 +42,13 @@ function isPositiveScore(value) {
 }
 
 
-function includesAny(text, terms) {
-  const value = String(
-    text ?? ""
-  ).toLowerCase();
+function containsAny(text, words) {
+  const normalized =
+    String(text ?? "").toLowerCase();
 
-  return terms.some(
-    (term) =>
-      value.includes(term)
+  return words.some(
+    (word) =>
+      normalized.includes(word)
   );
 }
 
@@ -69,7 +68,10 @@ function detectAiFocus(
         "INCREASES_RISK"
     );
 
-  for (const driver of positiveDrivers) {
+
+  for (
+    const driver of positiveDrivers
+  ) {
     const label =
       String(
         driver.label ??
@@ -79,7 +81,7 @@ function detectAiFocus(
 
 
     if (
-      includesAny(
+      containsAny(
         label,
         [
           "cable temperature",
@@ -93,7 +95,7 @@ function detectAiFocus(
 
 
     if (
-      includesAny(
+      containsAny(
         label,
         [
           "current",
@@ -107,7 +109,7 @@ function detectAiFocus(
 
 
     if (
-      includesAny(
+      containsAny(
         label,
         [
           "partial discharge",
@@ -121,7 +123,7 @@ function detectAiFocus(
 
 
     if (
-      includesAny(
+      containsAny(
         label,
         [
           "humidity",
@@ -135,12 +137,7 @@ function detectAiFocus(
 
 
     if (
-      includesAny(
-        label,
-        [
-          "arc",
-        ]
-      )
+      label.includes("arc")
     ) {
       return "arc";
     }
@@ -206,11 +203,11 @@ function detectAiFocus(
 
 function aiFocusLabel(focus) {
   switch (focus) {
-    case "thermal":
-      return "THERMAL / CABLE";
-
     case "current":
       return "CURRENT / FEEDER";
+
+    case "thermal":
+      return "CABLE TEMPERATURE";
 
     case "pd":
       return "PARTIAL DISCHARGE";
@@ -227,106 +224,193 @@ function aiFocusLabel(focus) {
 }
 
 
-function StatusDot({ status }) {
+function aiFocusDescription(focus) {
+  switch (focus) {
+    case "current":
+      return "AI detected a developing load or current trend on the outgoing feeder.";
+
+    case "thermal":
+      return "AI detected a developing thermal condition around the monitored cable / load area.";
+
+    case "pd":
+      return "AI detected unusual partial-discharge behavior in the monitored outgoing circuit.";
+
+    case "environment":
+      return "AI detected an environmental pattern that may contribute to panel risk.";
+
+    case "arc":
+      return "AI detected features associated with the arc-monitoring path.";
+
+    default:
+      return "AI detected a developing condition before the deterministic warning threshold was reached.";
+  }
+}
+
+
+function StatusDot({
+  state = "NORMAL",
+  ai = false,
+}) {
   return (
     <span
-      className={`twin-status-dot ${statusClass(
-        status
-      )}`}
+      className={
+        ai
+          ? "simple-ai-dot"
+          : `simple-status-dot ${statusClass(
+              state
+            )}`
+      }
     />
   );
 }
 
 
-function ZoneLabel({
-  label,
-  status,
-  aiAdvisory = false,
+function StateBadge({
+  state = "NORMAL",
+  ai = false,
+}) {
+  if (ai) {
+    return (
+      <span className="simple-state-badge ai">
+        AI EARLY
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`simple-state-badge ${statusClass(
+        state
+      )}`}
+    >
+      {state}
+    </span>
+  );
+}
+
+
+function PowerStage({
+  number,
+  title,
+  description,
+  state = "NORMAL",
+  ai = false,
+  children,
 }) {
   return (
-    <div className="twin-zone-label">
-
-      {aiAdvisory ? (
-        <span className="twin-ai-dot" />
-      ) : (
-        <StatusDot
-          status={status}
-        />
-      )}
-
-
-      <span>
-        {label}
-      </span>
+    <article
+      className={[
+        "power-stage",
+        statusClass(state),
+        ai ? "ai-warning" : "",
+      ].join(" ")}
+    >
+      <div className="power-stage-number">
+        {number}
+      </div>
 
 
-      {aiAdvisory ? (
-        <strong className="twin-ai-tag">
-          AI EARLY
-        </strong>
-      ) : (
-        <strong>
-          {status}
-        </strong>
-      )}
+      <div className="power-stage-main">
 
+        <div className="power-stage-top">
+
+          <div>
+
+            <h4>
+              {title}
+            </h4>
+
+            <p>
+              {description}
+            </p>
+
+          </div>
+
+
+          <StateBadge
+            state={state}
+            ai={ai}
+          />
+
+        </div>
+
+
+        {children && (
+          <div className="power-stage-info">
+            {children}
+          </div>
+        )}
+
+      </div>
+    </article>
+  );
+}
+
+
+function FlowArrow() {
+  return (
+    <div className="simple-flow-arrow">
+      <span />
+      <strong>
+        ↓
+      </strong>
     </div>
   );
 }
 
 
-function SensorCard({
+function SensorRow({
   label,
   value,
-  status,
   description,
-  aiAdvisory = false,
+  state = "NORMAL",
+  ai = false,
 }) {
   return (
-    <article
+    <div
       className={[
-        "twin-sensor-card",
-        statusClass(status),
-        aiAdvisory
-          ? "ai-warning"
-          : "",
+        "simple-sensor-row",
+        statusClass(state),
+        ai ? "ai-warning" : "",
       ].join(" ")}
     >
 
-      <div className="twin-sensor-header">
+      <div className="simple-sensor-left">
 
-        {aiAdvisory ? (
-          <span className="twin-ai-dot" />
-        ) : (
-          <StatusDot
-            status={status}
-          />
-        )}
+        <StatusDot
+          state={state}
+          ai={ai}
+        />
 
-        <span>
-          {label}
-        </span>
+        <div>
+
+          <strong>
+            {label}
+          </strong>
+
+          <span>
+            {description}
+          </span>
+
+        </div>
 
       </div>
 
 
-      <strong>
-        {value}
-      </strong>
+      <div className="simple-sensor-right">
 
+        <strong>
+          {value}
+        </strong>
 
-      <small>
-        {description}
-      </small>
+        <StateBadge
+          state={state}
+          ai={ai}
+        />
 
+      </div>
 
-      {aiAdvisory && (
-        <span className="sensor-ai-advisory">
-          AI EARLY WARNING
-        </span>
-      )}
-
-    </article>
+    </div>
   );
 }
 
@@ -431,50 +515,43 @@ function DigitalPanelTwin({
     );
 
 
-  const domainStatus =
-    (involved) =>
-      involved
-        ? overallStatus
-        : "NORMAL";
+  const currentState =
+    currentInvolved
+      ? overallStatus
+      : "NORMAL";
 
 
-  const currentStatus =
-    domainStatus(
-      currentInvolved
-    );
+  const thermalState =
+    thermalInvolved
+      ? overallStatus
+      : "NORMAL";
 
 
-  const thermalStatus =
-    domainStatus(
-      thermalInvolved
-    );
+  const environmentState =
+    environmentInvolved
+      ? overallStatus
+      : "NORMAL";
 
 
-  const environmentStatus =
-    domainStatus(
-      environmentInvolved
-    );
+  const pdState =
+    pdInvolved
+      ? overallStatus
+      : "NORMAL";
 
 
-  const pdStatus =
-    domainStatus(
-      pdInvolved
-    );
-
-
-  const arcStatus =
+  const arcState =
     arcInvolved
       ? "CRITICAL"
       : "NORMAL";
 
 
-  const busbarStatus =
+  const busbarState =
     arcInvolved
       ? "CRITICAL"
       : "NORMAL";
 
 
-  const breakerStatus =
+  const breakerPathState =
     arcInvolved
       ? "CRITICAL"
       : currentInvolved
@@ -482,14 +559,14 @@ function DigitalPanelTwin({
         : "NORMAL";
 
 
-  const feederStatus =
+  const feederState =
     currentInvolved ||
     thermalInvolved
       ? overallStatus
       : "NORMAL";
 
 
-  const cableStatus =
+  const cableState =
     thermalInvolved ||
     pdInvolved
       ? overallStatus
@@ -538,13 +615,9 @@ function DigitalPanelTwin({
     aiFocus === "arc";
 
 
-  const aiBusbar =
-    aiArc;
-
-
   const aiBreaker =
-    aiArc ||
-    aiCurrent;
+    aiCurrent ||
+    aiArc;
 
 
   const aiFeeder =
@@ -557,42 +630,44 @@ function DigitalPanelTwin({
     aiPd;
 
 
-  const dataQuality =
-    panel?.data_quality ??
-    "UNKNOWN";
-
-
-  const telemetryPresent =
+  const telemetryAvailable =
     Boolean(
       panel?.last_seen
     );
 
 
-  return (
-    <section className="digital-twin">
+  const dataQuality =
+    panel?.data_quality ??
+    "UNKNOWN";
 
-      <div className="digital-twin-header">
+
+  return (
+    <section className="simple-digital-twin">
+
+      <div className="simple-twin-header">
 
         <div>
 
-          <p className="digital-twin-eyebrow">
-            VIRTUAL INSTRUMENTATION LAYER
+          <p className="simple-eyebrow">
+            VIRTUAL HARDWARE MODEL
           </p>
 
           <h3>
-            Digital Panel Twin
+            {panel?.panel_id ?? "PANEL"} Electrical Panel
           </h3>
 
-          <span className="digital-twin-subtitle">
-            Conceptual live representation
-            of panel instrumentation
-          </span>
+          <p>
+            Follow the electrical power
+            path from the main distribution
+            bus to the monitored outgoing
+            cable.
+          </p>
 
         </div>
 
 
         <div
-          className={`digital-twin-overall ${statusClass(
+          className={`simple-panel-state ${statusClass(
             overallStatus
           )}`}
         >
@@ -607,6 +682,10 @@ function DigitalPanelTwin({
             )}
           </strong>
 
+          <small>
+            Risk {risk?.risk_score ?? 0}/100
+          </small>
+
         </div>
 
       </div>
@@ -614,31 +693,31 @@ function DigitalPanelTwin({
 
       {aiEarlyWarning && (
 
-        <div className="digital-twin-ai-warning">
+        <div className="simple-ai-banner">
 
-          <div className="ai-pulse" />
+          <div className="simple-ai-pulse" />
 
           <div>
 
+            <span>
+              GRIDGUARD PREDICTIVE AI
+            </span>
+
             <strong>
-              AI EARLY WARNING
+              Early warning before
+              deterministic threshold
             </strong>
 
-            <span>
-              Predictive intelligence
-              detected a developing{" "}
-              {aiFocusLabel(
+            <p>
+              {aiFocusDescription(
                 aiFocus
-              ).toLowerCase()}{" "}
-              condition while the
-              deterministic panel state
-              remains NORMAL.
-            </span>
+              )}
+            </p>
 
           </div>
 
 
-          <div className="ai-focus-chip">
+          <div className="simple-ai-focus">
             {aiFocusLabel(
               aiFocus
             )}
@@ -649,368 +728,267 @@ function DigitalPanelTwin({
       )}
 
 
-      <div className="digital-twin-layout">
+      <div className="simple-twin-grid">
 
-        <div className="panel-cabinet">
+        <div className="simple-power-flow">
 
-          <div className="cabinet-label">
-            {panel?.panel_id ??
-              "PANEL"}
-          </div>
+          <div className="simple-section-heading">
 
-
-          <div
-            className={[
-              "panel-zone",
-              "busbar-zone",
-              statusClass(
-                busbarStatus
-              ),
-              aiBusbar
-                ? "ai-warning"
-                : "",
-            ].join(" ")}
-          >
-
-            <ZoneLabel
-              label="BUSBAR"
-              status={
-                busbarStatus
-              }
-              aiAdvisory={
-                aiBusbar
-              }
-            />
-
-
-            <div className="busbar-lines">
-              <span />
-              <span />
-              <span />
-            </div>
-
-
-            <div
-              className={[
-                "virtual-sensor",
-                "arc-sensor",
-                statusClass(
-                  arcStatus
-                ),
-                aiArc
-                  ? "ai-warning"
-                  : "",
-              ].join(" ")}
-            >
-              ARC
-            </div>
-
-          </div>
-
-
-          <div className="panel-connection">
-            <span />
-            <span />
-            <span />
-          </div>
-
-
-          <div
-            className={[
-              "panel-zone",
-              "breaker-zone",
-              statusClass(
-                breakerStatus
-              ),
-              aiBreaker
-                ? "ai-warning"
-                : "",
-            ].join(" ")}
-          >
-
-            <ZoneLabel
-              label="BREAKER"
-              status={
-                breakerStatus
-              }
-              aiAdvisory={
-                aiBreaker
-              }
-            />
-
-
-            <div className="breaker-body">
-
-              <div className="breaker-handle" />
+            <div>
 
               <span>
-                CB
+                ELECTRICAL POWER FLOW
               </span>
 
+              <strong>
+                Electrical Path & Condition
+              </strong>
+
             </div>
 
           </div>
 
 
-          <div className="panel-connection">
-            <span />
-            <span />
-            <span />
-          </div>
-
-
-          <div
-            className={[
-              "panel-zone",
-              "feeder-zone",
-              statusClass(
-                feederStatus
-              ),
-              aiFeeder
-                ? "ai-warning"
-                : "",
-            ].join(" ")}
+          <PowerStage
+            number="1"
+            title="Main Busbar"
+            description="Main conductor that distributes electrical power inside the panel."
+            state={busbarState}
+            ai={aiArc}
           >
 
-            <ZoneLabel
-              label="FEEDER"
-              status={
-                feederStatus
-              }
-              aiAdvisory={
-                aiFeeder
-              }
-            />
+            <div className="stage-reading">
 
+              <span>
+                Arc monitoring
+              </span>
 
-            <div className="feeder-lines">
-              <span />
-              <span />
-              <span />
-            </div>
-
-
-            <div
-              className={[
-                "virtual-sensor",
-                "current-sensor",
-                statusClass(
-                  currentStatus
-                ),
-                aiCurrent
-                  ? "ai-warning"
-                  : "",
-              ].join(" ")}
-            >
-              I
-            </div>
-
-          </div>
-
-
-          <div
-            className={[
-              "panel-zone",
-              "cable-zone",
-              statusClass(
-                cableStatus
-              ),
-              aiCable
-                ? "ai-warning"
-                : "",
-            ].join(" ")}
-          >
-
-            <ZoneLabel
-              label="CABLE / LOAD"
-              status={
-                cableStatus
-              }
-              aiAdvisory={
-                aiCable
-              }
-            />
-
-
-            <div className="cable-lines">
-              <span />
-              <span />
-              <span />
-            </div>
-
-
-            <div
-              className={[
-                "virtual-sensor",
-                "temperature-sensor",
-                statusClass(
-                  thermalStatus
-                ),
-                aiThermal
-                  ? "ai-warning"
-                  : "",
-              ].join(" ")}
-            >
-              °C
-            </div>
-
-
-            <div
-              className={[
-                "virtual-sensor",
-                "pd-sensor",
-                statusClass(
-                  pdStatus
-                ),
-                aiPd
-                  ? "ai-warning"
-                  : "",
-              ].join(" ")}
-            >
-              PD
-            </div>
-
-          </div>
-
-
-          <div
-            className={[
-              "environment-sensor",
-              statusClass(
-                environmentStatus
-              ),
-              aiEnvironment
-                ? "ai-warning"
-                : "",
-            ].join(" ")}
-          >
-
-            {aiEnvironment ? (
-              <span className="twin-ai-dot" />
-            ) : (
-              <StatusDot
-                status={
-                  environmentStatus
+              <strong
+                className={
+                  panel?.arc_detected
+                    ? "danger-reading"
+                    : "safe-reading"
                 }
-              />
-            )}
+              >
+                {panel?.arc_detected
+                  ? "DETECTED"
+                  : "CLEAR"}
+              </strong>
+
+            </div>
+
+          </PowerStage>
 
 
-            <span>
-              AMBIENT
-            </span>
+          <FlowArrow />
 
-            <strong>
-              {formatNumber(
-                panel?.ambient_temperature_c,
-                1
-              )} °C
-            </strong>
 
-          </div>
+          <PowerStage
+            number="2"
+            title="Circuit Breaker"
+            description="Protection and switching device for the outgoing electrical circuit."
+            state={breakerPathState}
+            ai={aiBreaker}
+          >
+
+            <div className="stage-reading">
+
+              <span>
+                Monitored path current
+              </span>
+
+              <strong>
+                {formatNumber(
+                  panel?.current_a,
+                  1
+                )} A
+              </strong>
+
+            </div>
+
+            <small className="stage-note">
+              Color represents the
+              monitored electrical path,
+              not a confirmed breaker fault.
+            </small>
+
+          </PowerStage>
+
+
+          <FlowArrow />
+
+
+          <PowerStage
+            number="3"
+            title="Outgoing Feeder"
+            description="Electrical path carrying power from the breaker toward the connected load."
+            state={feederState}
+            ai={aiFeeder}
+          >
+
+            <div className="stage-reading">
+
+              <span>
+                Current measurement
+              </span>
+
+              <strong>
+                {formatNumber(
+                  panel?.current_a,
+                  1
+                )} A
+              </strong>
+
+            </div>
+
+          </PowerStage>
+
+
+          <FlowArrow />
+
+
+          <PowerStage
+            number="4"
+            title="Cable / Load Area"
+            description="Monitored outgoing cable and load area where thermal and PD conditions are observed."
+            state={cableState}
+            ai={aiCable}
+          >
+
+            <div className="stage-reading-grid">
+
+              <div>
+
+                <span>
+                  Cable temperature
+                </span>
+
+                <strong>
+                  {formatNumber(
+                    panel
+                      ?.cable_temperature_c,
+                    1
+                  )} °C
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Partial discharge
+                </span>
+
+                <strong>
+                  {formatNumber(
+                    panel?.pd_index,
+                    1
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </PowerStage>
 
         </div>
 
 
-        <div className="digital-twin-side">
+        <aside className="simple-sensor-panel">
 
-          <div className="twin-sensor-grid">
+          <div className="simple-section-heading">
 
-            <SensorCard
-              label="Current Measurement"
-              value={`${formatNumber(
-                panel?.current_a,
-                1
-              )} A`}
-              status={
-                currentStatus
-              }
-              aiAdvisory={
-                aiCurrent
-              }
-              description="Electrical load measurement"
-            />
+            <div>
 
+              <span>
+                SENSOR STATUS
+              </span>
 
-            <SensorCard
-              label="Cable Temperature"
-              value={`${formatNumber(
-                panel?.cable_temperature_c,
-                1
-              )} °C`}
-              status={
-                thermalStatus
-              }
-              aiAdvisory={
-                aiThermal
-              }
-              description="Surface / cable thermal monitoring"
-            />
+              <strong>
+                What is GridGuard seeing?
+              </strong>
 
-
-            <SensorCard
-              label="Ambient Environment"
-              value={`${formatNumber(
-                panel?.ambient_temperature_c,
-                1
-              )} °C · ${formatNumber(
-                panel?.humidity_pct,
-                1
-              )}% RH`}
-              status={
-                environmentStatus
-              }
-              aiAdvisory={
-                aiEnvironment
-              }
-              description="Ambient temperature and humidity"
-            />
-
-
-            <SensorCard
-              label="Partial Discharge"
-              value={formatNumber(
-                panel?.pd_index,
-                1
-              )}
-              status={
-                pdStatus
-              }
-              aiAdvisory={
-                aiPd
-              }
-              description="HFCT-style PD monitoring channel"
-            />
-
-
-            <SensorCard
-              label="Arc Detection"
-              value={
-                panel?.arc_detected
-                  ? "DETECTED"
-                  : "CLEAR"
-              }
-              status={
-                arcStatus
-              }
-              aiAdvisory={
-                aiArc
-              }
-              description="Optical arc detection channel"
-            />
+            </div>
 
           </div>
 
 
-          <div className="edge-module">
+          <SensorRow
+            label="Current"
+            value={`${formatNumber(
+              panel?.current_a,
+              1
+            )} A`}
+            description="Electrical load measurement"
+            state={currentState}
+            ai={aiCurrent}
+          />
 
-            <div className="edge-module-header">
+
+          <SensorRow
+            label="Cable Temperature"
+            value={`${formatNumber(
+              panel?.cable_temperature_c,
+              1
+            )} °C`}
+            description="Cable / surface thermal monitoring"
+            state={thermalState}
+            ai={aiThermal}
+          />
+
+
+          <SensorRow
+            label="Partial Discharge"
+            value={formatNumber(
+              panel?.pd_index,
+              1
+            )}
+            description="PD monitoring channel"
+            state={pdState}
+            ai={aiPd}
+          />
+
+
+          <SensorRow
+            label="Arc Detection"
+            value={
+              panel?.arc_detected
+                ? "DETECTED"
+                : "CLEAR"
+            }
+            description="Optical arc monitoring"
+            state={arcState}
+            ai={aiArc}
+          />
+
+
+          <SensorRow
+            label="Ambient"
+            value={`${formatNumber(
+              panel
+                ?.ambient_temperature_c,
+              1
+            )} °C · ${formatNumber(
+              panel?.humidity_pct,
+              1
+            )}% RH`}
+            description="Panel environment"
+            state={environmentState}
+            ai={aiEnvironment}
+          />
+
+
+          <div className="simple-edge-module">
+
+            <div className="simple-edge-title">
 
               <div>
 
-                <p>
+                <span>
                   GRIDGUARD EDGE
-                </p>
+                </span>
 
                 <strong>
                   EDGE-01
@@ -1018,31 +996,30 @@ function DigitalPanelTwin({
 
               </div>
 
-
-              <span className="edge-module-badge">
+              <span className="simple-virtual-tag">
                 VIRTUAL
               </span>
 
             </div>
 
 
-            <div className="edge-module-status">
+            <div className="simple-edge-status">
 
               <div>
 
                 <span>
-                  Telemetry Link
+                  Telemetry
                 </span>
 
                 <strong
                   className={
-                    telemetryPresent
-                      ? "edge-good"
-                      : "edge-bad"
+                    telemetryAvailable
+                      ? "edge-ok"
+                      : "edge-problem"
                   }
                 >
-                  {telemetryPresent
-                    ? "DATA PRESENT"
+                  {telemetryAvailable
+                    ? "CONNECTED"
                     : "NO DATA"}
                 </strong>
 
@@ -1059,7 +1036,7 @@ function DigitalPanelTwin({
                   className={
                     dataQuality ===
                     "GOOD"
-                      ? "edge-good"
+                      ? "edge-ok"
                       : "edge-warning"
                   }
                 >
@@ -1078,7 +1055,7 @@ function DigitalPanelTwin({
                 <strong
                   className={
                     intelligence?.available
-                      ? "edge-good"
+                      ? "edge-ok"
                       : "edge-warning"
                   }
                 >
@@ -1093,7 +1070,7 @@ function DigitalPanelTwin({
               <div>
 
                 <span>
-                  Predictive Decision
+                  Prediction
                 </span>
 
                 <strong>
@@ -1119,89 +1096,128 @@ function DigitalPanelTwin({
 
               </div>
 
-
-              <div>
-
-                <span>
-                  AI Focus
-                </span>
-
-                <strong
-                  className={
-                    aiEarlyWarning
-                      ? "edge-ai"
-                      : ""
-                  }
-                >
-                  {aiEarlyWarning
-                    ? aiFocusLabel(
-                        aiFocus
-                      )
-                    : "--"}
-                </strong>
-
-              </div>
-
-            </div>
-
-
-            <div className="edge-flow">
-
-              <span>
-                SENSORS
-              </span>
-
-              <i>
-                →
-              </i>
-
-              <span>
-                EDGE
-              </span>
-
-              <i>
-                →
-              </i>
-
-              <span>
-                GRIDGUARD
-              </span>
-
             </div>
 
           </div>
+
+        </aside>
+
+      </div>
+
+
+      <div className="simple-data-flow">
+
+        <div>
+
+          <span className="data-flow-number">
+            1
+          </span>
+
+          <strong>
+            Field Sensors
+          </strong>
+
+          <small>
+            Measure panel conditions
+          </small>
+
+        </div>
+
+
+        <span className="data-flow-arrow">
+          →
+        </span>
+
+
+        <div>
+
+          <span className="data-flow-number">
+            2
+          </span>
+
+          <strong>
+            GridGuard Edge
+          </strong>
+
+          <small>
+            Collects and validates data
+          </small>
+
+        </div>
+
+
+        <span className="data-flow-arrow">
+          →
+        </span>
+
+
+        <div>
+
+          <span className="data-flow-number">
+            3
+          </span>
+
+          <strong>
+            MQTT / Modbus
+          </strong>
+
+          <small>
+            Industrial communication
+          </small>
+
+        </div>
+
+
+        <span className="data-flow-arrow">
+          →
+        </span>
+
+
+        <div>
+
+          <span className="data-flow-number">
+            4
+          </span>
+
+          <strong>
+            GridGuard Server
+          </strong>
+
+          <small>
+            Risk Engine + AI
+          </small>
 
         </div>
 
       </div>
 
 
-      <div className="digital-twin-footer">
+      <div className="simple-twin-footer">
 
-        <div className="twin-legend">
+        <div className="simple-legend">
 
           <span>
-            <StatusDot status="NORMAL" />
+            <StatusDot state="NORMAL" />
             Normal
           </span>
 
           <span>
-            <StatusDot status="WARNING" />
+            <StatusDot state="WARNING" />
             Warning
           </span>
 
           <span>
-            <StatusDot status="HIGH" />
+            <StatusDot state="HIGH" />
             High
           </span>
 
           <span>
-            <StatusDot status="CRITICAL" />
+            <StatusDot state="CRITICAL" />
             Critical
           </span>
 
-          <span className="twin-ai-legend">
-            <i />
+          <span>
+            <StatusDot ai />
             AI Early Warning
           </span>
 
@@ -1209,11 +1225,12 @@ function DigitalPanelTwin({
 
 
         <p>
-          Conceptual instrumentation view only.
-          Sensor placement, isolation,
-          protection, wiring and field
-          installation require qualified
-          electrical engineering validation.
+          Conceptual visualization only.
+          Final sensor placement,
+          electrical isolation,
+          protection and installation
+          require qualified electrical
+          engineering validation.
         </p>
 
       </div>
