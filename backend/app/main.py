@@ -216,6 +216,22 @@ def health_check(
 def ai_status():
     return get_ai_runtime_status()
 
+def normalize_event_timestamp(
+    value: datetime
+) -> datetime:
+    """
+    Normalize timestamps for reliable chronological comparison.
+
+    SQLite may return stored DateTime values without timezone
+    information even when timezone=True is configured.
+    Naive timestamps are therefore treated as UTC inside the
+    prototype ingestion ordering check.
+    """
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)
+
 
 @app.post("/telemetry")
 def receive_telemetry(
@@ -224,14 +240,53 @@ def receive_telemetry(
 ):
     received_at = datetime.now(timezone.utc)
 
-    # 1. Store raw telemetry.
+    # ---------------------------------------------------------
+    # 1. Determine event ordering BEFORE inserting the new row.
+    # ---------------------------------------------------------
+
+    latest_existing_telemetry = (
+        db.query(Telemetry)
+        .filter(
+            Telemetry.panel_id == data.panel_id
+        )
+        .order_by(
+            Telemetry.timestamp.desc(),
+            Telemetry.id.desc()
+        )
+        .first()
+    )
+
+    out_of_order = False
+
+    if latest_existing_telemetry is not None:
+        incoming_timestamp = normalize_event_timestamp(
+            data.timestamp
+        )
+
+        latest_timestamp = normalize_event_timestamp(
+            latest_existing_telemetry.timestamp
+        )
+
+        out_of_order = (
+            incoming_timestamp <
+            latest_timestamp
+        )
+
+    # ---------------------------------------------------------
+    # 2. Always store the raw telemetry.
+    # ---------------------------------------------------------
+
     telemetry_record = Telemetry(
         panel_id=data.panel_id,
         timestamp=data.timestamp,
         received_at=received_at,
         current_a=data.current_a,
-        cable_temperature_c=data.cable_temperature_c,
-        ambient_temperature_c=data.ambient_temperature_c,
+        cable_temperature_c=(
+            data.cable_temperature_c
+        ),
+        ambient_temperature_c=(
+            data.ambient_temperature_c
+        ),
         humidity_pct=data.humidity_pct,
         pd_index=data.pd_index,
         arc_detected=data.arc_detected,
@@ -240,10 +295,15 @@ def receive_telemetry(
 
     db.add(telemetry_record)
 
-    # 2. Update latest panel state.
+    # ---------------------------------------------------------
+    # 3. Load or create panel.
+    # ---------------------------------------------------------
+
     panel = (
         db.query(Panel)
-        .filter(Panel.panel_id == data.panel_id)
+        .filter(
+            Panel.panel_id == data.panel_id
+        )
         .first()
     )
 
@@ -251,33 +311,107 @@ def receive_telemetry(
         panel = Panel(
             panel_id=data.panel_id,
             last_seen=received_at,
+            current_a=data.current_a,
+            cable_temperature_c=(
+                data.cable_temperature_c
+            ),
+            ambient_temperature_c=(
+                data.ambient_temperature_c
+            ),
+            humidity_pct=data.humidity_pct,
+            pd_index=data.pd_index,
+            arc_detected=data.arc_detected,
             data_quality=data.data_quality.value
         )
+
         db.add(panel)
 
-    panel.last_seen = received_at
-    panel.current_a = data.current_a
-    panel.cable_temperature_c = data.cable_temperature_c
-    panel.ambient_temperature_c = data.ambient_temperature_c
-    panel.humidity_pct = data.humidity_pct
-    panel.pd_index = data.pd_index
-    panel.arc_detected = data.arc_detected
-    panel.data_quality = data.data_quality.value
+        # A newly discovered panel must establish an initial
+        # current state.
+        out_of_order = False
 
-    # Commit first so the new telemetry is available
-    # when build_history() queries the database.
+    else:
+        # last_seen represents communication activity.
+        # Even a delayed packet means that the source was seen.
+        panel.last_seen = received_at
+
+        # Only chronologically current telemetry may replace
+        # the panel's latest operational state.
+        if not out_of_order:
+            panel.current_a = data.current_a
+            panel.cable_temperature_c = (
+                data.cable_temperature_c
+            )
+            panel.ambient_temperature_c = (
+                data.ambient_temperature_c
+            )
+            panel.humidity_pct = data.humidity_pct
+            panel.pd_index = data.pd_index
+            panel.arc_detected = data.arc_detected
+            panel.data_quality = (
+                data.data_quality.value
+            )
+
+    # Store raw telemetry and any permitted panel update.
     db.commit()
 
-    # 3. Automatically evaluate risk.
+    # ---------------------------------------------------------
+    # 4. Out-of-order telemetry is history-only.
+    # ---------------------------------------------------------
+    #
+    # The delayed event remains available in telemetry history,
+    # but it must not rewind:
+    #
+    # - current panel state
+    # - latest deterministic risk state
+    # - alarm lifecycle
+    #
+    # It can naturally become part of chronological historical
+    # context when a future current sample is processed.
+    # ---------------------------------------------------------
+
+    if out_of_order:
+        return {
+            "status": "accepted",
+            "received_at": received_at,
+            "telemetry": data,
+            "processing": {
+                "out_of_order": True,
+                "history_stored": True,
+                "latest_state_updated": False,
+                "risk_evaluated": False,
+                "alarm_updated": False,
+                "latest_event_timestamp": (
+                    latest_existing_telemetry.timestamp
+                    if latest_existing_telemetry
+                    is not None
+                    else None
+                )
+            },
+            "risk": None,
+            "alarm": None
+        }
+
+    # ---------------------------------------------------------
+    # 5. Build chronological history.
+    # ---------------------------------------------------------
+
     history = build_history(
         db=db,
         panel_id=data.panel_id,
         limit=20
     )
 
+    # ---------------------------------------------------------
+    # 6. Automatically evaluate deterministic risk.
+    # ---------------------------------------------------------
+
     risk_result = evaluate_risk(history)
 
-    # 4. Persist risk assessment.
+    # ---------------------------------------------------------
+    # 7. Persist risk assessment.
+    # ---------------------------------------------------------
+
     risk_record = RiskAssessment(
         panel_id=data.panel_id,
         timestamp=received_at,
@@ -296,7 +430,10 @@ def receive_telemetry(
     db.add(risk_record)
     db.commit()
 
-    # 5. Open/update/resolve alarm if necessary.
+    # ---------------------------------------------------------
+    # 8. Synchronize alarm lifecycle.
+    # ---------------------------------------------------------
+
     alarm_result = sync_alarm(
         db=db,
         panel_id=data.panel_id,
@@ -308,6 +445,15 @@ def receive_telemetry(
         "status": "accepted",
         "received_at": received_at,
         "telemetry": data,
+        "processing": {
+            "out_of_order": False,
+            "history_stored": True,
+            "latest_state_updated": True,
+            "risk_evaluated": True,
+            "alarm_updated": (
+                alarm_result is not None
+            )
+        },
         "risk": risk_result,
         "alarm": alarm_result
     }
