@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   CartesianGrid,
   Legend,
@@ -10,6 +12,7 @@ import {
 } from "recharts";
 
 import AiTimeline from "./AiTimeline";
+import "./PanelDetail.css";
 
 
 const API_BASE_URL =
@@ -147,6 +150,9 @@ function PanelDetail({
   error,
   onClose,
 }) {
+  const [trendTab, setTrendTab] =
+    useState("current");
+
   const panel =
     detail?.panel;
 
@@ -181,22 +187,199 @@ function PanelDetail({
       detail?.risk_history
     );
 
+  const predictiveProbability =
+    predictive?.probability_pct;
+
+  const predictiveDecision =
+    predictive?.decision;
+
+  const anomalyLabel =
+    intelligence?.available
+      ? humanize(
+          anomaly?.level
+        )
+      : "UNAVAILABLE";
+
+  const consensusLabel =
+    intelligence?.available
+      ? humanize(
+          consensus?.status
+        )
+      : "UNAVAILABLE";
+
+
+  function renderTrendChart() {
+    if (trendTab === "current") {
+      return telemetryChart.length > 0 ? (
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+        >
+          <LineChart
+            data={telemetryChart}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#17303d"
+            />
+
+            <XAxis
+              dataKey="time"
+              stroke="#60798b"
+              tick={{
+                fontSize: 9,
+              }}
+            />
+
+            <YAxis
+              stroke="#60798b"
+              tick={{
+                fontSize: 9,
+              }}
+            />
+
+            <Tooltip />
+
+            <Line
+              type="monotone"
+              dataKey="current"
+              name="Current (A)"
+              stroke="#55bedf"
+              strokeWidth={2.5}
+              dot={false}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="detail-chart-empty">
+          No current history available.
+        </div>
+      );
+    }
+
+    if (trendTab === "temperature") {
+      return telemetryChart.length > 0 ? (
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+        >
+          <LineChart
+            data={telemetryChart}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#17303d"
+            />
+
+            <XAxis
+              dataKey="time"
+              stroke="#60798b"
+              tick={{
+                fontSize: 9,
+              }}
+            />
+
+            <YAxis
+              stroke="#60798b"
+              tick={{
+                fontSize: 9,
+              }}
+            />
+
+            <Tooltip />
+            <Legend />
+
+            <Line
+              type="monotone"
+              dataKey="cableTemperature"
+              name="Cable °C"
+              stroke="#ff8a4c"
+              strokeWidth={2.5}
+              dot={false}
+              isAnimationActive={false}
+            />
+
+            <Line
+              type="monotone"
+              dataKey="ambientTemperature"
+              name="Ambient °C"
+              stroke="#55bedf"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="detail-chart-empty">
+          No temperature history available.
+        </div>
+      );
+    }
+
+    return riskChart.length > 0 ? (
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+      >
+        <LineChart
+          data={riskChart}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#17303d"
+          />
+
+          <XAxis
+            dataKey="time"
+            stroke="#60798b"
+            tick={{
+              fontSize: 9,
+            }}
+          />
+
+          <YAxis
+            domain={[0, 100]}
+            stroke="#60798b"
+            tick={{
+              fontSize: 9,
+            }}
+          />
+
+          <Tooltip />
+
+          <Line
+            type="monotone"
+            dataKey="risk"
+            name="Risk Score"
+            stroke="#ff5d6c"
+            strokeWidth={2.5}
+            dot={false}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    ) : (
+      <div className="detail-chart-empty">
+        No risk history available.
+      </div>
+    );
+  }
+
 
   return (
     <>
-
       <div
         className="detail-backdrop"
         onClick={onClose}
       />
-
 
       <aside className="detail-drawer">
 
         <div className="detail-header">
 
           <div>
-
             <p className="eyebrow">
               PANEL INSPECTION
             </p>
@@ -205,9 +388,7 @@ function PanelDetail({
               {panel?.panel_id ??
                 "Loading..."}
             </h2>
-
           </div>
-
 
           <button
             className="detail-close"
@@ -241,116 +422,252 @@ function PanelDetail({
 
         ) : (
 
-          <div className="detail-content">
+          <div className="detail-content pd-detail-content">
 
-            <section className="detail-summary">
+            <section className="pd-hero">
 
-              <div className="detail-risk-main">
+              <article className="pd-hero-card risk">
 
                 <span>
-                  Risk Score
+                  Risk
+                </span>
+
+                <div className="pd-hero-value-row">
+
+                  <strong>
+                    {risk?.risk_score ?? 0}
+                  </strong>
+
+                  <span
+                    className={`detail-status ${(
+                      risk?.status ??
+                      "unknown"
+                    ).toLowerCase()}`}
+                  >
+                    {risk?.status ??
+                      "UNKNOWN"}
+                  </span>
+
+                </div>
+
+                <small>
+                  {humanize(
+                    risk?.primary_risk ??
+                      "NO_DATA"
+                  )}
+                </small>
+
+              </article>
+
+
+              <article className="pd-hero-card consensus">
+
+                <span>
+                  Consensus
+                </span>
+
+                <strong
+                  className={`pd-consensus-value ${statusClass(
+                    consensus?.status
+                  )}`}
+                >
+                  {consensusLabel}
+                </strong>
+
+                <small>
+                  {intelligence?.available
+                    ? humanize(
+                        consensus?.confidence
+                      )
+                    : "AI unavailable"}
+                </small>
+
+              </article>
+
+
+              <article className="pd-hero-card predictive">
+
+                <span>
+                  Predictive Risk
                 </span>
 
                 <strong>
-                  {risk?.risk_score ?? 0}
+                  {intelligence?.available
+                    ? formatPercent(
+                        predictiveProbability,
+                        1
+                      )
+                    : "--"}
                 </strong>
 
-                <span
-                  className={`detail-status ${
-                    (
-                      risk?.status ??
-                      "unknown"
-                    ).toLowerCase()
-                  }`}
-                >
-                  {risk?.status ??
-                    "UNKNOWN"}
+                <small>
+                  {intelligence?.available
+                    ? humanize(
+                        predictiveDecision
+                      )
+                    : "AI unavailable"}
+                </small>
+
+                {intelligence?.available && (
+                  <div className="pd-probability-track">
+                    <div
+                      className="pd-probability-fill"
+                      style={{
+                        width: `${Math.min(
+                          Math.max(
+                            Number(
+                              predictiveProbability ??
+                                0
+                            ),
+                            0
+                          ),
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                )}
+
+              </article>
+
+
+              <article className="pd-hero-card anomaly">
+
+                <span>
+                  Behavioral Anomaly
                 </span>
 
+                <strong
+                  className={
+                    anomaly?.detected
+                      ? "ai-alert-text"
+                      : "safe-text"
+                  }
+                >
+                  {anomalyLabel}
+                </strong>
+
+                <small>
+                  {intelligence?.available
+                    ? anomaly?.detected
+                      ? "Unusual behavior"
+                      : "Healthy pattern"
+                    : "AI unavailable"}
+                </small>
+
+              </article>
+
+            </section>
+
+
+            <section className="pd-context-strip">
+
+              <div>
+                <span>
+                  Data Quality
+                </span>
+
+                <strong
+                  className={`pd-quality ${statusClass(
+                    panel?.data_quality
+                  )}`}
+                >
+                  {panel?.data_quality ??
+                    "UNKNOWN"}
+                </strong>
               </div>
 
+              <div>
+                <span>
+                  Primary Risk
+                </span>
 
-              <div className="detail-summary-meta">
+                <strong>
+                  {humanize(
+                    risk?.primary_risk ??
+                      "NO_DATA"
+                  )}
+                </strong>
+              </div>
 
-                <div>
+              <div>
+                <span>
+                  Confidence
+                </span>
 
-                  <span>
-                    Primary Risk
-                  </span>
+                <strong>
+                  {intelligence?.available
+                    ? humanize(
+                        consensus?.confidence
+                      )
+                    : "--"}
+                </strong>
+              </div>
 
-                  <strong>
-                    {risk?.primary_risk ??
-                      "NO_DATA"}
-                  </strong>
+              <div>
+                <span>
+                  Layer Agreement
+                </span>
 
-                </div>
+                <strong>
+                  {intelligence?.available
+                    ? `${consensus?.strong_signal_count ?? 0}/3`
+                    : "--"}
+                </strong>
+              </div>
 
+              <div>
+                <span>
+                  Horizon
+                </span>
 
-                <div>
+                <strong>
+                  {intelligence?.available
+                    ? `${predictive?.prediction_horizon_cycles ?? "--"} cycles`
+                    : "--"}
+                </strong>
+              </div>
 
-                  <span>
-                    Data Quality
-                  </span>
+              <div>
+                <span>
+                  Last Seen
+                </span>
 
-                  <strong>
-                    {panel?.data_quality ??
-                      "UNKNOWN"}
-                  </strong>
-
-                </div>
-
-
-                <div>
-
-                  <span>
-                    Last Seen
-                  </span>
-
-                  <strong>
-                    {formatTime(
-                      panel?.last_seen
-                    )}
-                  </strong>
-
-                </div>
-
+                <strong>
+                  {formatTime(
+                    panel?.last_seen
+                  )}
+                </strong>
               </div>
 
             </section>
 
 
-            <section className="detail-section intelligence-section">
+            <section className="detail-section pd-timeline-section">
 
-              <div className="detail-section-title intelligence-title-row">
+              <div className="detail-section-title pd-section-heading">
 
                 <div>
-
                   <p className="eyebrow">
                     GRIDGUARD INTELLIGENCE
                   </p>
 
                   <h3>
-                    Predictive & Anomaly Analysis
+                    Early-Warning Timeline
                   </h3>
-
                 </div>
 
                 {intelligence?.available && (
-
                   <span
                     className={`intelligence-status ${statusClass(
                       consensus?.status
                     )}`}
                   >
-                    {humanize(
-                      consensus?.status
-                    )}
+                    {consensusLabel}
                   </span>
-
                 )}
 
               </div>
-
 
               {!intelligence?.available ? (
 
@@ -370,190 +687,6 @@ function PanelDetail({
               ) : (
 
                 <>
-
-                  <div className="intelligence-hero">
-
-                    <div className="intelligence-consensus">
-
-                      <span>
-                        Consensus
-                      </span>
-
-                      <strong>
-                        {humanize(
-                          consensus?.status
-                        )}
-                      </strong>
-
-                      <p>
-                        {consensus?.summary ??
-                          "No consensus summary available."}
-                      </p>
-
-                    </div>
-
-
-                    <div className="intelligence-confidence">
-
-                      <span>
-                        Confidence
-                      </span>
-
-                      <strong>
-                        {humanize(
-                          consensus?.confidence
-                        )}
-                      </strong>
-
-                      <small>
-                        {consensus?.agreement_text ??
-                          "Agreement unavailable"}
-                      </small>
-
-                    </div>
-
-                  </div>
-
-
-                  <div className="intelligence-metrics">
-
-                    <article>
-
-                      <span>
-                        Predictive Risk
-                      </span>
-
-                      <strong>
-                        {formatPercent(
-                          predictive?.probability_pct,
-                          2
-                        )}
-                      </strong>
-
-                      <small>
-                        {humanize(
-                          predictive?.decision
-                        )}
-                      </small>
-
-                      <div className="probability-track">
-
-                        <div
-                          className="probability-fill"
-                          style={{
-                            width: `${Math.min(
-                              Math.max(
-                                Number(
-                                  predictive?.probability_pct ?? 0
-                                ),
-                                0
-                              ),
-                              100
-                            )}%`,
-                          }}
-                        />
-
-                      </div>
-
-                    </article>
-
-
-                    <article>
-
-                      <span>
-                        Prediction Horizon
-                      </span>
-
-                      <strong>
-                        {predictive?.prediction_horizon_cycles ??
-                          "--"}
-                      </strong>
-
-                      <small>
-                        telemetry cycles
-                      </small>
-
-                    </article>
-
-
-                    <article>
-
-                      <span>
-                        Behavioral Anomaly
-                      </span>
-
-                      <strong
-                        className={
-                          anomaly?.detected
-                            ? "ai-alert-text"
-                            : "safe-text"
-                        }
-                      >
-                        {humanize(
-                          anomaly?.level
-                        )}
-                      </strong>
-
-                      <small>
-                        {anomaly?.detected
-                          ? "Unusual behavior detected"
-                          : "Healthy pattern"}
-                      </small>
-
-                    </article>
-
-
-                    <article>
-
-                      <span>
-                        AI Data Quality
-                      </span>
-
-                      <strong
-                        className={
-                          predictive?.data_reliable
-                            ? "safe-text"
-                            : "ai-hold-text"
-                        }
-                      >
-                        {predictive?.data_reliable
-                          ? "RELIABLE"
-                          : "WITHHELD"}
-                      </strong>
-
-                      <small>
-                        {predictive?.data_reliable
-                          ? "Prediction enabled"
-                          : "Awaiting trustworthy samples"}
-                      </small>
-
-                    </article>
-
-                  </div>
-
-
-                  <div className="intelligence-agreement">
-
-                    <div>
-
-                      <span>
-                        Layer Agreement
-                      </span>
-
-                      <strong>
-                        {consensus?.strong_signal_count ?? 0}/3
-                      </strong>
-
-                    </div>
-
-                    <p>
-                      {predictive?.reason ??
-                        consensus?.summary}
-                    </p>
-
-                  </div>
-
-
                   <AiTimeline
                     key={panel?.panel_id}
                     panel={panel}
@@ -561,24 +694,290 @@ function PanelDetail({
                     intelligence={intelligence}
                   />
 
+                  <div className="pd-intelligence-note">
 
-                  <div className="ai-driver-list">
-
-                    <div className="ai-driver-heading">
-
+                    <div>
                       <span>
-                        TOP AI DRIVERS
+                        Current interpretation
                       </span>
 
-                      <small>
-                        XGBoost feature contributions
-                      </small>
-
+                      <strong>
+                        {consensus?.summary ??
+                          predictive?.reason ??
+                          "No interpretation available."}
+                      </strong>
                     </div>
 
-                    {(explainability?.top_drivers ?? []).length > 0 ? (
+                    <p>
+                      {intelligence?.prototype_notice ??
+                        "AI output is advisory and does not replace deterministic protection logic."}
+                    </p>
 
-                      (explainability?.top_drivers ?? []).map(
+                  </div>
+                </>
+
+              )}
+
+            </section>
+
+
+            <section className="detail-section">
+
+              <div className="detail-section-title">
+
+                <p className="eyebrow">
+                  LIVE TELEMETRY
+                </p>
+
+                <h3>
+                  Current Measurements
+                </h3>
+
+              </div>
+
+              <div className="sensor-grid pd-sensor-grid">
+
+                <article>
+                  <span>
+                    Current
+                  </span>
+
+                  <strong>
+                    {formatNumber(
+                      panel?.current_a,
+                      1
+                    )} A
+                  </strong>
+                </article>
+
+                <article>
+                  <span>
+                    Cable Temperature
+                  </span>
+
+                  <strong>
+                    {formatNumber(
+                      panel?.cable_temperature_c,
+                      1
+                    )} °C
+                  </strong>
+                </article>
+
+                <article>
+                  <span>
+                    Ambient Temperature
+                  </span>
+
+                  <strong>
+                    {formatNumber(
+                      panel?.ambient_temperature_c,
+                      1
+                    )} °C
+                  </strong>
+                </article>
+
+                <article>
+                  <span>
+                    Humidity
+                  </span>
+
+                  <strong>
+                    {formatNumber(
+                      panel?.humidity_pct,
+                      1
+                    )} %
+                  </strong>
+                </article>
+
+                <article>
+                  <span>
+                    PD Index
+                  </span>
+
+                  <strong>
+                    {formatNumber(
+                      panel?.pd_index,
+                      1
+                    )}
+                  </strong>
+                </article>
+
+                <article>
+                  <span>
+                    Arc Detection
+                  </span>
+
+                  <strong
+                    className={
+                      panel?.arc_detected
+                        ? "danger-text"
+                        : "safe-text"
+                    }
+                  >
+                    {panel?.arc_detected
+                      ? "DETECTED"
+                      : "CLEAR"}
+                  </strong>
+                </article>
+
+              </div>
+
+            </section>
+
+
+            <details className="detail-section pd-disclosure">
+
+              <summary>
+
+                <div>
+                  <p className="eyebrow">
+                    EXPLAINABILITY
+                  </p>
+
+                  <h3>
+                    Why is the panel rated this way?
+                  </h3>
+                </div>
+
+                <span className="pd-disclosure-hint">
+                  Open details
+                </span>
+
+              </summary>
+
+
+              <div className="pd-disclosure-body">
+
+                <div className="pd-explanation-column">
+
+                  <div className="pd-subheading">
+
+                    <strong>
+                      Deterministic Explanation
+                    </strong>
+
+                    <span>
+                      Rule-based evidence
+                    </span>
+
+                  </div>
+
+
+                  <div className="cause-list">
+
+                    {(risk?.causes ?? []).length > 0 ? (
+
+                      (risk?.causes ?? []).map(
+                        (cause, index) => (
+
+                          <div
+                            className="cause-item"
+                            key={`${cause}-${index}`}
+                          >
+
+                            <span>
+                              {index + 1}
+                            </span>
+
+                            <p>
+                              {cause}
+                            </p>
+
+                          </div>
+
+                        )
+                      )
+
+                    ) : (
+
+                      <div className="cause-item">
+
+                        <span>
+                          1
+                        </span>
+
+                        <p>
+                          No explanation data available.
+                        </p>
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+
+                  <div className="component-score-grid">
+
+                    <div>
+                      <span>
+                        Current
+                      </span>
+
+                      <strong>
+                        {risk?.component_scores
+                          ?.current ?? 0}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Thermal
+                      </span>
+
+                      <strong>
+                        {risk?.component_scores
+                          ?.thermal ?? 0}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Environment
+                      </span>
+
+                      <strong>
+                        {risk?.component_scores
+                          ?.environment ?? 0}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Partial Discharge
+                      </span>
+
+                      <strong>
+                        {risk?.component_scores
+                          ?.partial_discharge ?? 0}
+                      </strong>
+                    </div>
+
+                  </div>
+
+                </div>
+
+
+                <div className="pd-explanation-column">
+
+                  <div className="pd-subheading">
+
+                    <strong>
+                      AI Drivers
+                    </strong>
+
+                    <span>
+                      XGBoost feature contributions
+                    </span>
+
+                  </div>
+
+
+                  {(explainability?.top_drivers ?? []).length > 0 ? (
+
+                    <div className="ai-driver-list pd-driver-list">
+
+                      {(explainability?.top_drivers ?? []).map(
                         (driver, index) => (
 
                           <div
@@ -642,280 +1041,23 @@ function PanelDetail({
                           </div>
 
                         )
-                      )
+                      )}
 
-                    ) : (
+                    </div>
 
-                      <div className="intelligence-unavailable compact">
-                        No feature-contribution data available.
-                      </div>
+                  ) : (
 
-                    )}
+                    <div className="intelligence-unavailable compact">
+                      No feature-contribution data available.
+                    </div>
 
-                  </div>
-
-
-                  <div className="ai-prototype-note">
-
-                    <strong>
-                      Prototype AI Advisory
-                    </strong>
-
-                    <span>
-                      {intelligence?.prototype_notice ??
-                        "AI output is advisory and does not replace deterministic protection logic."}
-                    </span>
-
-                  </div>
-
-                </>
-
-              )}
-
-            </section>
-
-
-            <section className="detail-section">
-
-              <div className="detail-section-title">
-
-                <p className="eyebrow">
-                  LIVE TELEMETRY
-                </p>
-
-                <h3>
-                  Current Measurements
-                </h3>
-
-              </div>
-
-
-              <div className="sensor-grid">
-
-                <article>
-
-                  <span>
-                    Current
-                  </span>
-
-                  <strong>
-                    {formatNumber(
-                      panel?.current_a,
-                      1
-                    )} A
-                  </strong>
-
-                </article>
-
-
-                <article>
-
-                  <span>
-                    Cable Temperature
-                  </span>
-
-                  <strong>
-                    {formatNumber(
-                      panel?.cable_temperature_c,
-                      1
-                    )} °C
-                  </strong>
-
-                </article>
-
-
-                <article>
-
-                  <span>
-                    Ambient Temperature
-                  </span>
-
-                  <strong>
-                    {formatNumber(
-                      panel?.ambient_temperature_c,
-                      1
-                    )} °C
-                  </strong>
-
-                </article>
-
-
-                <article>
-
-                  <span>
-                    Humidity
-                  </span>
-
-                  <strong>
-                    {formatNumber(
-                      panel?.humidity_pct,
-                      1
-                    )} %
-                  </strong>
-
-                </article>
-
-
-                <article>
-
-                  <span>
-                    PD Index
-                  </span>
-
-                  <strong>
-                    {formatNumber(
-                      panel?.pd_index,
-                      1
-                    )}
-                  </strong>
-
-                </article>
-
-
-                <article>
-
-                  <span>
-                    Arc Detection
-                  </span>
-
-                  <strong
-                    className={
-                      panel?.arc_detected
-                        ? "danger-text"
-                        : "safe-text"
-                    }
-                  >
-                    {panel?.arc_detected
-                      ? "DETECTED"
-                      : "CLEAR"}
-                  </strong>
-
-                </article>
-
-              </div>
-
-            </section>
-
-
-            <section className="detail-section">
-
-              <div className="detail-section-title">
-
-                <p className="eyebrow">
-                  EXPLAINABLE RISK
-                </p>
-
-                <h3>
-                  Why is this panel rated this way?
-                </h3>
-
-              </div>
-
-
-              <div className="cause-list">
-
-                {(risk?.causes ?? []).length > 0 ? (
-
-                  (risk?.causes ?? []).map(
-                    (cause, index) => (
-
-                      <div
-                        className="cause-item"
-                        key={`${cause}-${index}`}
-                      >
-
-                        <span>
-                          {index + 1}
-                        </span>
-
-                        <p>
-                          {cause}
-                        </p>
-
-                      </div>
-
-                    )
-                  )
-
-                ) : (
-
-                  <div className="cause-item">
-
-                    <span>
-                      1
-                    </span>
-
-                    <p>
-                      No explanation data available.
-                    </p>
-
-                  </div>
-
-                )}
-
-              </div>
-
-
-              <div className="component-score-grid">
-
-                <div>
-
-                  <span>
-                    Current
-                  </span>
-
-                  <strong>
-                    {risk?.component_scores
-                      ?.current ?? 0}
-                  </strong>
-
-                </div>
-
-
-                <div>
-
-                  <span>
-                    Thermal
-                  </span>
-
-                  <strong>
-                    {risk?.component_scores
-                      ?.thermal ?? 0}
-                  </strong>
-
-                </div>
-
-
-                <div>
-
-                  <span>
-                    Environment
-                  </span>
-
-                  <strong>
-                    {risk?.component_scores
-                      ?.environment ?? 0}
-                  </strong>
-
-                </div>
-
-
-                <div>
-
-                  <span>
-                    Partial Discharge
-                  </span>
-
-                  <strong>
-                    {risk?.component_scores
-                      ?.partial_discharge ?? 0}
-                  </strong>
+                  )}
 
                 </div>
 
               </div>
 
-            </section>
+            </details>
 
 
             <section className="detail-section">
@@ -932,7 +1074,6 @@ function PanelDetail({
 
               </div>
 
-
               {activeAlarm ? (
 
                 <div className="active-alarm-box">
@@ -940,12 +1081,10 @@ function PanelDetail({
                   <div className="alarm-heading">
 
                     <span
-                      className={`detail-status ${
-                        (
-                          activeAlarm.severity ??
-                          "unknown"
-                        ).toLowerCase()
-                      }`}
+                      className={`detail-status ${(
+                        activeAlarm.severity ??
+                        "unknown"
+                      ).toLowerCase()}`}
                     >
                       {activeAlarm.severity}
                     </span>
@@ -956,27 +1095,21 @@ function PanelDetail({
 
                   </div>
 
-
                   <p>
                     {activeAlarm.message}
                   </p>
 
-
                   <div className="alarm-meta">
 
                     <span>
-
                       Risk:{" "}
 
                       <strong>
                         {activeAlarm.risk_score}
                       </strong>
-
                     </span>
 
-
                     <span>
-
                       Opened:{" "}
 
                       <strong>
@@ -984,7 +1117,6 @@ function PanelDetail({
                           activeAlarm.opened_at
                         )}
                       </strong>
-
                     </span>
 
                   </div>
@@ -1008,241 +1140,78 @@ function PanelDetail({
             </section>
 
 
-            <section className="detail-section">
+            <section className="detail-section pd-trends">
 
-              <div className="detail-section-title">
+              <div className="pd-trend-heading">
 
-                <p className="eyebrow">
-                  TREND ANALYSIS
-                </p>
+                <div>
+                  <p className="eyebrow">
+                    TREND ANALYSIS
+                  </p>
 
-                <h3>
-                  Current History
-                </h3>
+                  <h3>
+                    Historical Signals
+                  </h3>
+                </div>
 
-              </div>
 
+                <div
+                  className="pd-trend-tabs"
+                  role="tablist"
+                  aria-label="Trend chart selection"
+                >
 
-              <div className="detail-chart">
-
-                {telemetryChart.length > 0 ? (
-
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
+                  <button
+                    type="button"
+                    className={
+                      trendTab === "current"
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setTrendTab("current")
+                    }
                   >
+                    Current
+                  </button>
 
-                    <LineChart
-                      data={telemetryChart}
-                    >
-
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="#17303d"
-                      />
-
-                      <XAxis
-                        dataKey="time"
-                        stroke="#60798b"
-                        tick={{
-                          fontSize: 9,
-                        }}
-                      />
-
-                      <YAxis
-                        stroke="#60798b"
-                        tick={{
-                          fontSize: 9,
-                        }}
-                      />
-
-                      <Tooltip />
-
-                      <Line
-                        type="monotone"
-                        dataKey="current"
-                        name="Current (A)"
-                        stroke="#55bedf"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-
-                    </LineChart>
-
-                  </ResponsiveContainer>
-
-                ) : (
-
-                  <div className="detail-chart-empty">
-                    No telemetry history available.
-                  </div>
-
-                )}
-
-              </div>
-
-            </section>
-
-
-            <section className="detail-section">
-
-              <div className="detail-section-title">
-
-                <p className="eyebrow">
-                  THERMAL TREND
-                </p>
-
-                <h3>
-                  Temperature History
-                </h3>
-
-              </div>
-
-
-              <div className="detail-chart">
-
-                {telemetryChart.length > 0 ? (
-
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
+                  <button
+                    type="button"
+                    className={
+                      trendTab === "temperature"
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setTrendTab(
+                        "temperature"
+                      )
+                    }
                   >
+                    Temperature
+                  </button>
 
-                    <LineChart
-                      data={telemetryChart}
-                    >
-
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="#17303d"
-                      />
-
-                      <XAxis
-                        dataKey="time"
-                        stroke="#60798b"
-                        tick={{
-                          fontSize: 9,
-                        }}
-                      />
-
-                      <YAxis
-                        stroke="#60798b"
-                        tick={{
-                          fontSize: 9,
-                        }}
-                      />
-
-                      <Tooltip />
-
-                      <Legend />
-
-                      <Line
-                        type="monotone"
-                        dataKey="cableTemperature"
-                        name="Cable °C"
-                        stroke="#ff8a4c"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-
-                      <Line
-                        type="monotone"
-                        dataKey="ambientTemperature"
-                        name="Ambient °C"
-                        stroke="#55bedf"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-
-                    </LineChart>
-
-                  </ResponsiveContainer>
-
-                ) : (
-
-                  <div className="detail-chart-empty">
-                    No temperature history available.
-                  </div>
-
-                )}
-
-              </div>
-
-            </section>
-
-
-            <section className="detail-section">
-
-              <div className="detail-section-title">
-
-                <p className="eyebrow">
-                  RISK TREND
-                </p>
-
-                <h3>
-                  Risk Score History
-                </h3>
-
-              </div>
-
-
-              <div className="detail-chart">
-
-                {riskChart.length > 0 ? (
-
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
+                  <button
+                    type="button"
+                    className={
+                      trendTab === "risk"
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setTrendTab("risk")
+                    }
                   >
+                    Risk
+                  </button>
 
-                    <LineChart
-                      data={riskChart}
-                    >
+                </div>
 
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="#17303d"
-                      />
+              </div>
 
-                      <XAxis
-                        dataKey="time"
-                        stroke="#60798b"
-                        tick={{
-                          fontSize: 9,
-                        }}
-                      />
 
-                      <YAxis
-                        domain={[0, 100]}
-                        stroke="#60798b"
-                        tick={{
-                          fontSize: 9,
-                        }}
-                      />
-
-                      <Tooltip />
-
-                      <Line
-                        type="monotone"
-                        dataKey="risk"
-                        name="Risk Score"
-                        stroke="#ff5d6c"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-
-                    </LineChart>
-
-                  </ResponsiveContainer>
-
-                ) : (
-
-                  <div className="detail-chart-empty">
-                    No risk history available.
-                  </div>
-
-                )}
-
+              <div className="detail-chart pd-trend-chart">
+                {renderTrendChart()}
               </div>
 
             </section>
@@ -1252,7 +1221,6 @@ function PanelDetail({
         )}
 
       </aside>
-
     </>
   );
 }

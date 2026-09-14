@@ -1,0 +1,651 @@
+/* ========================================================= */
+/* PANEL DETAIL — FINAL JURY LAYOUT */
+/* ========================================================= */
+
+.pd-detail-content {
+  padding-top: 18px;
+}
+
+.detail-drawer {
+  width: min(790px, 94vw);
+}
+
+.pd-hero {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pd-hero-card {
+  min-height: 126px;
+  padding: 15px;
+
+  display: flex;
+  flex-direction: column;
+
+  border: 1px solid #1d3442;
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(10, 29, 40, 0.98),
+      rgba(6, 21, 30, 0.98)
+    );
+}
+
+.pd-hero-card > span:first-child {
+  color: #607d8e;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+.pd-hero-card > strong {
+  margin-top: 13px;
+
+  color: #e5f0f5;
+
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.pd-hero-card > small {
+  margin-top: auto;
+  padding-top: 10px;
+
+  color: #658092;
+
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.pd-hero-card.risk {
+  border-color:
+    rgba(85, 190, 223, 0.3);
+}
+
+.pd-hero-card.consensus {
+  border-color:
+    rgba(121, 201, 228, 0.28);
+}
+
+.pd-hero-card.predictive {
+  border-color:
+    rgba(85, 190, 223, 0.34);
+}
+
+.pd-hero-card.anomaly {
+  border-color:
+    rgba(85, 214, 164, 0.2);
+}
+
+.pd-hero-value-row {
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+}
+
+.pd-hero-value-row > strong {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.pd-consensus-value {
+  font-size: 18px !important;
+}
+
+.pd-consensus-value.normal {
+  color: #55d6a4;
+}
+
+.pd-consensus-value.observe {
+  color: #79c9e4;
+}
+
+.pd-consensus-value.early-warning {
+  color: #f2c94c;
+}
+
+.pd-consensus-value.action-required {
+  color: #ff8a4c;
+}
+
+.pd-consensus-value.critical {
+  color: #ff5d6c;
+}
+
+.pd-consensus-value.hold-unreliable {
+  color: #c4a8ff;
+}
+
+.pd-probability-track {
+  height: 4px;
+  margin-top: 9px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: #102b38;
+}
+
+.pd-probability-fill {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #55d6a4,
+      #f2c94c,
+      #ff5d6c
+    );
+
+  transition: width 0.3s ease;
+}
+
+.pd-context-strip {
+  margin-top: 10px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+
+  border: 1px solid #19313f;
+  border-radius: 9px;
+
+  background: #071720;
+}
+
+.pd-context-strip > div {
+  min-width: 0;
+  padding: 11px 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+
+  border-right: 1px solid #162c38;
+}
+
+.pd-context-strip > div:last-child {
+  border-right: 0;
+}
+
+.pd-context-strip span {
+  color: #587486;
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.pd-context-strip strong {
+  overflow: hidden;
+
+  color: #b9c8d1;
+
+  font-size: 9px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pd-quality.good {
+  color: #55d6a4;
+}
+
+.pd-quality.degraded {
+  color: #f2c94c;
+}
+
+.pd-quality.bad {
+  color: #ff5d6c;
+}
+
+.pd-section-heading,
+.pd-trend-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+.pd-timeline-section {
+  border-color: #23485d;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(9, 29, 40, 0.98),
+      rgba(7, 22, 31, 0.98)
+    );
+}
+
+.pd-intelligence-note {
+  margin-top: 10px;
+  padding: 11px 12px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.2fr)
+    minmax(0, 0.8fr);
+
+  gap: 14px;
+
+  border: 1px solid #183442;
+  border-radius: 8px;
+
+  background: #071720;
+}
+
+.pd-intelligence-note > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.pd-intelligence-note span {
+  color: #5e7b8c;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.pd-intelligence-note strong {
+  color: #aabcc7;
+
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.pd-intelligence-note p {
+  margin: 0;
+
+  color: #5f798a;
+
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.pd-sensor-grid article {
+  min-height: 76px;
+}
+
+.pd-disclosure {
+  padding: 0;
+  overflow: hidden;
+}
+
+.pd-disclosure > summary {
+  padding: 18px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  cursor: pointer;
+
+  list-style: none;
+
+  user-select: none;
+}
+
+.pd-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.pd-disclosure > summary h3 {
+  margin: 0;
+
+  font-size: 17px;
+}
+
+.pd-disclosure > summary::after {
+  content: "+";
+
+  width: 26px;
+  height: 26px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid #294656;
+  border-radius: 7px;
+
+  color: #75cbe6;
+
+  background: #071923;
+
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.pd-disclosure[open] > summary::after {
+  content: "−";
+}
+
+.pd-disclosure-hint {
+  margin-left: auto;
+
+  color: #587486;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.pd-disclosure[open]
+.pd-disclosure-hint {
+  display: none;
+}
+
+.pd-disclosure-body {
+  padding: 0 20px 20px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+
+  border-top: 1px solid #172f3c;
+}
+
+.pd-explanation-column {
+  min-width: 0;
+  padding-top: 17px;
+}
+
+.pd-subheading {
+  margin-bottom: 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.pd-subheading strong {
+  color: #b8c8d1;
+
+  font-size: 10px;
+}
+
+.pd-subheading span {
+  color: #587486;
+
+  font-size: 8px;
+}
+
+.pd-driver-list {
+  margin-top: 0;
+}
+
+.pd-driver-list .ai-driver-row {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.pd-trend-tabs {
+  display: flex;
+
+  padding: 3px;
+
+  border: 1px solid #223e4e;
+  border-radius: 8px;
+
+  background: #071923;
+}
+
+.pd-trend-tabs button {
+  min-width: 86px;
+  padding: 7px 10px;
+
+  border: 0;
+  border-radius: 6px;
+
+  color: #668193;
+  background: transparent;
+
+  cursor: pointer;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.pd-trend-tabs button:hover {
+  color: #b9d1dc;
+}
+
+.pd-trend-tabs button.active {
+  color: #daf5ff;
+  background: #123446;
+}
+
+.pd-trend-chart {
+  margin-top: 16px;
+  height: 270px;
+}
+
+@media (
+  max-width: 760px
+) {
+  .pd-hero {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .pd-context-strip {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .pd-context-strip > div {
+    border-bottom: 1px solid #162c38;
+  }
+
+  .pd-context-strip
+  > div:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .pd-context-strip
+  > div:nth-last-child(-n + 3) {
+    border-bottom: 0;
+  }
+
+  .pd-intelligence-note,
+  .pd-disclosure-body {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-section-heading,
+  .pd-trend-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pd-trend-tabs {
+    width: 100%;
+  }
+
+  .pd-trend-tabs button {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (
+  max-width: 520px
+) {
+  .pd-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-context-strip {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .pd-context-strip
+  > div:nth-child(3n) {
+    border-right: 1px solid #162c38;
+  }
+
+  .pd-context-strip
+  > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .pd-context-strip
+  > div:nth-last-child(-n + 3) {
+    border-bottom: 1px solid #162c38;
+  }
+
+  .pd-context-strip
+  > div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .pd-disclosure-hint {
+    display: none;
+  }
+}
+/* ========================================================= */
+/* FINAL POLISH */
+/* ========================================================= */
+
+/* Keep the sticky drawer header visible without occupying
+   too much vertical space during jury/demo scrolling. */
+.detail-header {
+  padding: 16px 22px;
+}
+
+.detail-header h2 {
+  font-size: 24px;
+}
+
+/* The timeline already lives inside its own section, so remove
+   the "card inside a card" feeling and make the empty state
+   more compact. */
+.pd-timeline-section .ai-timeline-card {
+  margin-top: 4px;
+  padding: 15px;
+
+  border-radius: 10px;
+
+  background:
+    rgba(
+      5,
+      23,
+      32,
+      0.5
+    );
+}
+
+.pd-timeline-section .ai-timeline-heading {
+  margin-bottom: 12px;
+}
+
+.pd-timeline-section .ai-timeline-title > span {
+  font-size: 10px;
+}
+
+.pd-timeline-section .ai-timeline-title small {
+  font-size: 9px;
+}
+
+.pd-timeline-section .ai-lead-badge {
+  min-width: 165px;
+  padding: 8px 11px;
+}
+
+.pd-timeline-section .ai-timeline-chart {
+  height: 225px;
+}
+
+.pd-timeline-section .ai-timeline-empty {
+  min-height: 92px;
+  padding: 14px;
+
+  font-size: 10px;
+}
+
+/* Recharts' default tooltip is light. Force it to match the
+   GridGuard dark operations-center palette. */
+.pd-trend-chart .recharts-default-tooltip {
+  border: 1px solid #315566 !important;
+  border-radius: 8px !important;
+
+  background:
+    rgba(
+      4,
+      16,
+      23,
+      0.96
+    ) !important;
+
+  box-shadow:
+    0 10px 24px
+    rgba(
+      0,
+      0,
+      0,
+      0.28
+    );
+}
+
+.pd-trend-chart .recharts-tooltip-label {
+  color: #d5e6ee !important;
+}
+
+.pd-trend-chart .recharts-tooltip-item {
+  color: #8fcde3 !important;
+}
+
+@media (
+  max-width: 720px
+) {
+  .detail-header {
+    padding: 14px 18px;
+  }
+
+  .pd-timeline-section .ai-lead-badge {
+    min-width: 0;
+  }
+
+  .pd-timeline-section .ai-timeline-chart {
+    height: 205px;
+  }
+}
