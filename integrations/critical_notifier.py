@@ -10,9 +10,15 @@ GRIDGUARD_API_URL = (
     "http://127.0.0.1:8000/alarms"
 )
 
-WEBHOOK_URL = os.getenv(
-    "GRIDGUARD_WEBHOOK_URL",
-    "http://127.0.0.1:9001/notify",
+# Preferred configuration variable:
+#   GRIDGUARD_WEBHOOK_URL
+#
+# WEBHOOK_URL is retained as a legacy fallback so older
+# development instructions continue to work.
+WEBHOOK_URL = (
+    os.getenv("GRIDGUARD_WEBHOOK_URL")
+    or os.getenv("WEBHOOK_URL")
+    or "http://127.0.0.1:9001/notify"
 )
 
 POLL_INTERVAL_SECONDS = 2

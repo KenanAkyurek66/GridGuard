@@ -1,16 +1,35 @@
-# React + Vite
+# GridGuard Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The GridGuard frontend is the live operations interface for the GridGuard low-voltage electrical panel monitoring and early-warning prototype.
 
-Currently, two official plugins are available:
+It is built with React and Vite and communicates with the GridGuard FastAPI backend.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Main Views
 
-## React Compiler
+The interface currently includes:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Overview dashboard
+- Digital Panel Twin / Panel View
+- Alarm Center
+- Panel monitoring table
+- Panel detail analysis
+- Live telemetry visualization
+- Deterministic risk information
+- GridGuard AI intelligence
+- AI early-warning timeline
+- Historical current, temperature, and risk trends
 
-## Expanding the ESLint configuration
+## Technology Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React
+- Vite
+- Axios
+- Recharts
+
+## Development
+
+From the `frontend` directory:
+
+```powershell
+npm install
+npm run dev

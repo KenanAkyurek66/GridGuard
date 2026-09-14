@@ -430,7 +430,7 @@ function AiTimeline({
 
         <div className="ai-timeline-empty">
 
-          Keep the LV-050 panel open while
+          Keep the {panelId ?? "selected"} panel open while
           telemetry changes.
 
           <strong>
