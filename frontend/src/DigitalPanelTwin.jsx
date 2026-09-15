@@ -8,16 +8,341 @@ const DETERMINISTIC_STATES = [
 ];
 
 
-function humanize(value) {
-  if (!value) {
-    return "UNKNOWN";
-  }
+const TEXT = {
+  tr: {
+    virtualHardwareModel:
+      "SANAL DONANIM MODELİ",
+    electricalPanel:
+      "Elektrik Panosu",
+    intro:
+      "Ana dağıtım barasından izlenen çıkış kablosuna kadar elektriksel güç yolunu ve durumunu izleyin.",
+    panelState:
+      "PANO DURUMU",
+    risk:
+      "Risk",
+    predictiveAi:
+      "GRIDGUARD TAHMİNSEL AI",
+    earlyBeforeThreshold:
+      "Deterministik eşikten önce erken uyarı",
+    electricalPowerFlow:
+      "ELEKTRİKSEL GÜÇ AKIŞI",
+    electricalPathCondition:
+      "Elektriksel Yol ve Durum",
+    mainBusbar:
+      "Ana Bara",
+    mainBusbarDesc:
+      "Pano içinde elektrik enerjisini dağıtan ana iletken.",
+    arcMonitoring:
+      "Ark izleme",
+    circuitBreaker:
+      "Devre Kesici",
+    circuitBreakerDesc:
+      "Çıkış devresi için koruma ve anahtarlama elemanı.",
+    monitoredPathCurrent:
+      "İzlenen yol akımı",
+    breakerNote:
+      "Renk, doğrulanmış bir kesici arızasını değil izlenen elektriksel yolun durumunu temsil eder.",
+    outgoingFeeder:
+      "Çıkış Fideri",
+    outgoingFeederDesc:
+      "Elektrik enerjisini kesiciden bağlı yüke taşıyan çıkış yolu.",
+    currentMeasurement:
+      "Akım ölçümü",
+    cableLoadArea:
+      "Kablo / Yük Bölgesi",
+    cableLoadDesc:
+      "Termal ve kısmi deşarj koşullarının izlendiği çıkış kablosu ve yük bölgesi.",
+    cableTemperature:
+      "Kablo sıcaklığı",
+    partialDischarge:
+      "Kısmi deşarj",
+    sensorStatus:
+      "SENSÖR DURUMU",
+    whatSeeing:
+      "GridGuard ne görüyor?",
+    current:
+      "Akım",
+    currentDesc:
+      "Elektriksel yük ölçümü",
+    cableTempDesc:
+      "Kablo / yüzey termal izlemesi",
+    pdDesc:
+      "PD izleme kanalı",
+    arcDetection:
+      "Ark Algılama",
+    arcDesc:
+      "Optik ark izleme",
+    ambient:
+      "Ortam",
+    ambientDesc:
+      "Pano içi ortam",
+    virtual:
+      "SANAL",
+    telemetry:
+      "Telemetri",
+    connected:
+      "BAĞLI",
+    noData:
+      "VERİ YOK",
+    dataQuality:
+      "Veri Kalitesi",
+    aiAnalysis:
+      "AI Analizi",
+    available:
+      "KULLANILABİLİR",
+    unavailable:
+      "KULLANILAMIYOR",
+    prediction:
+      "Tahmin",
+    consensus:
+      "Ortak Karar",
+    fieldSensors:
+      "Saha Sensörleri",
+    measurePanel:
+      "Pano koşullarını ölçer",
+    collects:
+      "Veriyi toplar ve doğrular",
+    industrialCommunication:
+      "Endüstriyel haberleşme",
+    server:
+      "GridGuard Sunucusu",
+    riskEngineAi:
+      "Risk Motoru + AI",
+    normal:
+      "Normal",
+    warning:
+      "Uyarı",
+    high:
+      "Yüksek",
+    critical:
+      "Kritik",
+    aiEarly:
+      "AI ERKEN",
+    aiEarlyWarning:
+      "AI Erken Uyarı",
+    clear:
+      "TEMİZ",
+    detected:
+      "ALGILANDI",
+    conceptual:
+      "Yalnızca kavramsal görselleştirmedir. Nihai sensör yerleşimi, elektriksel izolasyon, koruma ve kurulum; yetkin elektrik mühendisliği doğrulaması gerektirir.",
+  },
 
-  return String(value).replaceAll("_", " ");
+  en: {
+    virtualHardwareModel:
+      "VIRTUAL HARDWARE MODEL",
+    electricalPanel:
+      "Electrical Panel",
+    intro:
+      "Follow the electrical power path from the main distribution bus to the monitored outgoing cable.",
+    panelState:
+      "PANEL STATE",
+    risk:
+      "Risk",
+    predictiveAi:
+      "GRIDGUARD PREDICTIVE AI",
+    earlyBeforeThreshold:
+      "Early warning before deterministic threshold",
+    electricalPowerFlow:
+      "ELECTRICAL POWER FLOW",
+    electricalPathCondition:
+      "Electrical Path & Condition",
+    mainBusbar:
+      "Main Busbar",
+    mainBusbarDesc:
+      "Main conductor that distributes electrical power inside the panel.",
+    arcMonitoring:
+      "Arc monitoring",
+    circuitBreaker:
+      "Circuit Breaker",
+    circuitBreakerDesc:
+      "Protection and switching device for the outgoing electrical circuit.",
+    monitoredPathCurrent:
+      "Monitored path current",
+    breakerNote:
+      "Color represents the monitored electrical path, not a confirmed breaker fault.",
+    outgoingFeeder:
+      "Outgoing Feeder",
+    outgoingFeederDesc:
+      "Electrical path carrying power from the breaker toward the connected load.",
+    currentMeasurement:
+      "Current measurement",
+    cableLoadArea:
+      "Cable / Load Area",
+    cableLoadDesc:
+      "Monitored outgoing cable and load area where thermal and PD conditions are observed.",
+    cableTemperature:
+      "Cable temperature",
+    partialDischarge:
+      "Partial discharge",
+    sensorStatus:
+      "SENSOR STATUS",
+    whatSeeing:
+      "What is GridGuard seeing?",
+    current:
+      "Current",
+    currentDesc:
+      "Electrical load measurement",
+    cableTempDesc:
+      "Cable / surface thermal monitoring",
+    pdDesc:
+      "PD monitoring channel",
+    arcDetection:
+      "Arc Detection",
+    arcDesc:
+      "Optical arc monitoring",
+    ambient:
+      "Ambient",
+    ambientDesc:
+      "Panel environment",
+    virtual:
+      "VIRTUAL",
+    telemetry:
+      "Telemetry",
+    connected:
+      "CONNECTED",
+    noData:
+      "NO DATA",
+    dataQuality:
+      "Data Quality",
+    aiAnalysis:
+      "AI Analysis",
+    available:
+      "AVAILABLE",
+    unavailable:
+      "UNAVAILABLE",
+    prediction:
+      "Prediction",
+    consensus:
+      "Consensus",
+    fieldSensors:
+      "Field Sensors",
+    measurePanel:
+      "Measure panel conditions",
+    collects:
+      "Collects and validates data",
+    industrialCommunication:
+      "Industrial communication",
+    server:
+      "GridGuard Server",
+    riskEngineAi:
+      "Risk Engine + AI",
+    normal:
+      "Normal",
+    warning:
+      "Warning",
+    high:
+      "High",
+    critical:
+      "Critical",
+    aiEarly:
+      "AI EARLY",
+    aiEarlyWarning:
+      "AI Early Warning",
+    clear:
+      "CLEAR",
+    detected:
+      "DETECTED",
+    conceptual:
+      "Conceptual visualization only. Final sensor placement, electrical isolation, protection and installation require qualified electrical engineering validation.",
+  },
+};
+
+
+const STATE_LABELS = {
+  tr: {
+    NORMAL: "Normal",
+    WARNING: "Uyarı",
+    HIGH: "Yüksek",
+    CRITICAL: "Kritik",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    NORMAL: "Normal",
+    WARNING: "Warning",
+    HIGH: "High",
+    CRITICAL: "Critical",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const QUALITY_LABELS = {
+  tr: {
+    GOOD: "İyi",
+    DEGRADED: "Düşük Kalite",
+    BAD: "Hatalı",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    GOOD: "Good",
+    DEGRADED: "Degraded",
+    BAD: "Bad",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const DECISION_LABELS = {
+  tr: {
+    SAFE: "Güvenli",
+    HOLD: "İzlemede",
+    ESCALATION: "Yükselt",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    SAFE: "Safe",
+    HOLD: "Hold",
+    ESCALATION: "Escalation",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const CONSENSUS_LABELS = {
+  tr: {
+    OBSERVE: "İzle",
+    EARLY_WARNING: "Erken Uyarı",
+    CRITICAL: "Kritik",
+    HOLD_UNRELIABLE: "Güvenilmez Veriyi Tut",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    OBSERVE: "Observe",
+    EARLY_WARNING: "Early Warning",
+    CRITICAL: "Critical",
+    HOLD_UNRELIABLE: "Hold Unreliable",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+function mapLabel(
+  map,
+  language,
+  value
+) {
+  const key =
+    String(
+      value ?? "UNKNOWN"
+    ).toUpperCase();
+
+  return (
+    map[language]?.[key] ??
+    String(
+      value ?? "--"
+    ).replaceAll(
+      "_",
+      " "
+    )
+  );
 }
 
 
-function formatNumber(value, digits = 1) {
+function formatNumber(
+  value,
+  digits = 1
+) {
   if (
     value === null ||
     value === undefined ||
@@ -26,7 +351,8 @@ function formatNumber(value, digits = 1) {
     return "--";
   }
 
-  return Number(value).toFixed(digits);
+  return Number(value)
+    .toFixed(digits);
 }
 
 
@@ -38,17 +364,25 @@ function statusClass(value) {
 
 
 function isPositiveScore(value) {
-  return Number(value ?? 0) > 0;
+  return Number(value ?? 0) >
+    0;
 }
 
 
-function containsAny(text, words) {
+function containsAny(
+  text,
+  words
+) {
   const normalized =
-    String(text ?? "").toLowerCase();
+    String(
+      text ?? ""
+    ).toLowerCase();
 
   return words.some(
     (word) =>
-      normalized.includes(word)
+      normalized.includes(
+        word
+      )
   );
 }
 
@@ -68,7 +402,6 @@ function detectAiFocus(
         "INCREASES_RISK"
     );
 
-
   for (
     const driver of positiveDrivers
   ) {
@@ -78,7 +411,6 @@ function detectAiFocus(
         driver.feature ??
         ""
       ).toLowerCase();
-
 
     if (
       containsAny(
@@ -93,7 +425,6 @@ function detectAiFocus(
       return "thermal";
     }
 
-
     if (
       containsAny(
         label,
@@ -106,7 +437,6 @@ function detectAiFocus(
     ) {
       return "current";
     }
-
 
     if (
       containsAny(
@@ -121,7 +451,6 @@ function detectAiFocus(
       return "pd";
     }
 
-
     if (
       containsAny(
         label,
@@ -135,21 +464,20 @@ function detectAiFocus(
       return "environment";
     }
 
-
     if (
-      label.includes("arc")
+      label.includes(
+        "arc"
+      )
     ) {
       return "arc";
     }
   }
-
 
   const primaryRisk =
     String(
       risk?.primary_risk ??
       ""
     ).toUpperCase();
-
 
   if (
     primaryRisk.includes(
@@ -159,7 +487,6 @@ function detectAiFocus(
     return "thermal";
   }
 
-
   if (
     primaryRisk.includes(
       "CURRENT"
@@ -167,7 +494,6 @@ function detectAiFocus(
   ) {
     return "current";
   }
-
 
   if (
     primaryRisk.includes(
@@ -178,7 +504,6 @@ function detectAiFocus(
     return "pd";
   }
 
-
   if (
     primaryRisk.includes(
       "ENVIRONMENT"
@@ -186,7 +511,6 @@ function detectAiFocus(
   ) {
     return "environment";
   }
-
 
   if (
     primaryRisk.includes(
@@ -196,54 +520,98 @@ function detectAiFocus(
     return "arc";
   }
 
-
   return "unknown";
 }
 
 
-function aiFocusLabel(focus) {
-  switch (focus) {
-    case "current":
-      return "CURRENT / FEEDER";
+function aiFocusLabel(
+  focus,
+  language
+) {
+  const labels = {
+    tr: {
+      current:
+        "AKIM / FİDER",
+      thermal:
+        "KABLO SICAKLIĞI",
+      pd:
+        "KISMİ DEŞARJ",
+      environment:
+        "ÇEVRESEL",
+      arc:
+        "ARK",
+      unknown:
+        "GELİŞEN DURUM",
+    },
+    en: {
+      current:
+        "CURRENT / FEEDER",
+      thermal:
+        "CABLE TEMPERATURE",
+      pd:
+        "PARTIAL DISCHARGE",
+      environment:
+        "ENVIRONMENT",
+      arc:
+        "ARC",
+      unknown:
+        "DEVELOPING CONDITION",
+    },
+  };
 
-    case "thermal":
-      return "CABLE TEMPERATURE";
-
-    case "pd":
-      return "PARTIAL DISCHARGE";
-
-    case "environment":
-      return "ENVIRONMENT";
-
-    case "arc":
-      return "ARC";
-
-    default:
-      return "DEVELOPING CONDITION";
-  }
+  return (
+    labels[language]?.[
+      focus
+    ] ??
+    labels[language]
+      .unknown
+  );
 }
 
 
-function aiFocusDescription(focus) {
-  switch (focus) {
-    case "current":
-      return "AI detected a developing load or current trend on the outgoing feeder.";
+function aiFocusDescription(
+  focus,
+  language
+) {
+  const descriptions = {
+    tr: {
+      current:
+        "AI, çıkış fiderinde gelişen bir yük veya akım eğilimi algıladı.",
+      thermal:
+        "AI, izlenen kablo / yük bölgesinde gelişen bir termal durum algıladı.",
+      pd:
+        "AI, izlenen çıkış devresinde olağandışı kısmi deşarj davranışı algıladı.",
+      environment:
+        "AI, pano riskine katkıda bulunabilecek çevresel bir örüntü algıladı.",
+      arc:
+        "AI, ark izleme yoluyla ilişkili özellikler algıladı.",
+      unknown:
+        "AI, deterministik uyarı eşiğine ulaşılmadan önce gelişen bir durum algıladı.",
+    },
+    en: {
+      current:
+        "AI detected a developing load or current trend on the outgoing feeder.",
+      thermal:
+        "AI detected a developing thermal condition around the monitored cable / load area.",
+      pd:
+        "AI detected unusual partial-discharge behavior in the monitored outgoing circuit.",
+      environment:
+        "AI detected an environmental pattern that may contribute to panel risk.",
+      arc:
+        "AI detected features associated with the arc-monitoring path.",
+      unknown:
+        "AI detected a developing condition before the deterministic warning threshold was reached.",
+    },
+  };
 
-    case "thermal":
-      return "AI detected a developing thermal condition around the monitored cable / load area.";
-
-    case "pd":
-      return "AI detected unusual partial-discharge behavior in the monitored outgoing circuit.";
-
-    case "environment":
-      return "AI detected an environmental pattern that may contribute to panel risk.";
-
-    case "arc":
-      return "AI detected features associated with the arc-monitoring path.";
-
-    default:
-      return "AI detected a developing condition before the deterministic warning threshold was reached.";
-  }
+  return (
+    descriptions[
+      language
+    ]?.[focus] ??
+    descriptions[
+      language
+    ].unknown
+  );
 }
 
 
@@ -268,11 +636,15 @@ function StatusDot({
 function StateBadge({
   state = "NORMAL",
   ai = false,
+  language = "tr",
 }) {
+  const t =
+    TEXT[language];
+
   if (ai) {
     return (
       <span className="simple-state-badge ai">
-        AI EARLY
+        {t.aiEarly}
       </span>
     );
   }
@@ -283,7 +655,11 @@ function StateBadge({
         state
       )}`}
     >
-      {state}
+      {mapLabel(
+        STATE_LABELS,
+        language,
+        state
+      )}
     </span>
   );
 }
@@ -295,6 +671,7 @@ function PowerStage({
   description,
   state = "NORMAL",
   ai = false,
+  language = "tr",
   children,
 }) {
   return (
@@ -302,20 +679,20 @@ function PowerStage({
       className={[
         "power-stage",
         statusClass(state),
-        ai ? "ai-warning" : "",
+        ai
+          ? "ai-warning"
+          : "",
       ].join(" ")}
     >
       <div className="power-stage-number">
         {number}
       </div>
 
-
       <div className="power-stage-main">
 
         <div className="power-stage-top">
 
           <div>
-
             <h4>
               {title}
             </h4>
@@ -323,17 +700,17 @@ function PowerStage({
             <p>
               {description}
             </p>
-
           </div>
-
 
           <StateBadge
             state={state}
             ai={ai}
+            language={
+              language
+            }
           />
 
         </div>
-
 
         {children && (
           <div className="power-stage-info">
@@ -365,16 +742,18 @@ function SensorRow({
   description,
   state = "NORMAL",
   ai = false,
+  language = "tr",
 }) {
   return (
     <div
       className={[
         "simple-sensor-row",
         statusClass(state),
-        ai ? "ai-warning" : "",
+        ai
+          ? "ai-warning"
+          : "",
       ].join(" ")}
     >
-
       <div className="simple-sensor-left">
 
         <StatusDot
@@ -383,7 +762,6 @@ function SensorRow({
         />
 
         <div>
-
           <strong>
             {label}
           </strong>
@@ -391,11 +769,9 @@ function SensorRow({
           <span>
             {description}
           </span>
-
         </div>
 
       </div>
-
 
       <div className="simple-sensor-right">
 
@@ -406,10 +782,12 @@ function SensorRow({
         <StateBadge
           state={state}
           ai={ai}
+          language={
+            language
+          }
         />
 
       </div>
-
     </div>
   );
 }
@@ -417,7 +795,16 @@ function SensorRow({
 
 function DigitalPanelTwin({
   detail,
+  language = "tr",
 }) {
+  const safeLanguage =
+    language === "en"
+      ? "en"
+      : "tr";
+
+  const t =
+    TEXT[safeLanguage];
+
   const panel =
     detail?.panel ?? {};
 
@@ -425,16 +812,20 @@ function DigitalPanelTwin({
     detail?.risk ?? {};
 
   const intelligence =
-    detail?.intelligence ?? {};
+    detail?.intelligence ??
+    {};
 
   const predictive =
-    intelligence?.predictive ?? {};
+    intelligence?.predictive ??
+    {};
 
   const consensus =
-    intelligence?.consensus ?? {};
+    intelligence?.consensus ??
+    {};
 
   const scores =
-    risk?.component_scores ?? {};
+    risk?.component_scores ??
+    {};
 
 
   const overallStatus =
@@ -502,7 +893,8 @@ function DigitalPanelTwin({
       primaryRisk.includes(
         "PARTIAL"
       ) ||
-      primaryRisk === "PD"
+      primaryRisk ===
+        "PD"
     );
 
 
@@ -591,12 +983,14 @@ function DigitalPanelTwin({
 
   const aiCurrent =
     aiEarlyWarning &&
-    aiFocus === "current";
+    aiFocus ===
+      "current";
 
 
   const aiThermal =
     aiEarlyWarning &&
-    aiFocus === "thermal";
+    aiFocus ===
+      "thermal";
 
 
   const aiPd =
@@ -612,7 +1006,8 @@ function DigitalPanelTwin({
 
   const aiArc =
     aiEarlyWarning &&
-    aiFocus === "arc";
+    aiFocus ===
+      "arc";
 
 
   const aiBreaker =
@@ -647,22 +1042,19 @@ function DigitalPanelTwin({
       <div className="simple-twin-header">
 
         <div>
-
           <p className="simple-eyebrow">
-            VIRTUAL HARDWARE MODEL
+            {t.virtualHardwareModel}
           </p>
 
           <h3>
-            {panel?.panel_id ?? "PANEL"} Electrical Panel
+            {panel?.panel_id ??
+              "PANEL"}{" "}
+            {t.electricalPanel}
           </h3>
 
           <p>
-            Follow the electrical power
-            path from the main distribution
-            bus to the monitored outgoing
-            cable.
+            {t.intro}
           </p>
-
         </div>
 
 
@@ -671,21 +1063,24 @@ function DigitalPanelTwin({
             overallStatus
           )}`}
         >
-
           <span>
-            PANEL STATE
+            {t.panelState}
           </span>
 
           <strong>
-            {humanize(
+            {mapLabel(
+              STATE_LABELS,
+              safeLanguage,
               overallStatus
             )}
           </strong>
 
           <small>
-            Risk {risk?.risk_score ?? 0}/100
+            {t.risk}{" "}
+            {risk?.risk_score ??
+              0}
+            /100
           </small>
-
         </div>
 
       </div>
@@ -698,28 +1093,28 @@ function DigitalPanelTwin({
           <div className="simple-ai-pulse" />
 
           <div>
-
             <span>
-              GRIDGUARD PREDICTIVE AI
+              {t.predictiveAi}
             </span>
 
             <strong>
-              Early warning before
-              deterministic threshold
+              {
+                t.earlyBeforeThreshold
+              }
             </strong>
 
             <p>
               {aiFocusDescription(
-                aiFocus
+                aiFocus,
+                safeLanguage
               )}
             </p>
-
           </div>
-
 
           <div className="simple-ai-focus">
             {aiFocusLabel(
-              aiFocus
+              aiFocus,
+              safeLanguage
             )}
           </div>
 
@@ -733,34 +1128,40 @@ function DigitalPanelTwin({
         <div className="simple-power-flow">
 
           <div className="simple-section-heading">
-
             <div>
-
               <span>
-                ELECTRICAL POWER FLOW
+                {t.electricalPowerFlow}
               </span>
 
               <strong>
-                Electrical Path & Condition
+                {t.electricalPathCondition}
               </strong>
-
             </div>
-
           </div>
 
 
           <PowerStage
             number="1"
-            title="Main Busbar"
-            description="Main conductor that distributes electrical power inside the panel."
-            state={busbarState}
-            ai={aiArc}
+            title={
+              t.mainBusbar
+            }
+            description={
+              t.mainBusbarDesc
+            }
+            state={
+              busbarState
+            }
+            ai={
+              aiArc
+            }
+            language={
+              safeLanguage
+            }
           >
 
             <div className="stage-reading">
-
               <span>
-                Arc monitoring
+                {t.arcMonitoring}
               </span>
 
               <strong
@@ -771,10 +1172,9 @@ function DigitalPanelTwin({
                 }
               >
                 {panel?.arc_detected
-                  ? "DETECTED"
-                  : "CLEAR"}
+                  ? t.detected
+                  : t.clear}
               </strong>
-
             </div>
 
           </PowerStage>
@@ -785,16 +1185,26 @@ function DigitalPanelTwin({
 
           <PowerStage
             number="2"
-            title="Circuit Breaker"
-            description="Protection and switching device for the outgoing electrical circuit."
-            state={breakerPathState}
-            ai={aiBreaker}
+            title={
+              t.circuitBreaker
+            }
+            description={
+              t.circuitBreakerDesc
+            }
+            state={
+              breakerPathState
+            }
+            ai={
+              aiBreaker
+            }
+            language={
+              safeLanguage
+            }
           >
 
             <div className="stage-reading">
-
               <span>
-                Monitored path current
+                {t.monitoredPathCurrent}
               </span>
 
               <strong>
@@ -803,13 +1213,10 @@ function DigitalPanelTwin({
                   1
                 )} A
               </strong>
-
             </div>
 
             <small className="stage-note">
-              Color represents the
-              monitored electrical path,
-              not a confirmed breaker fault.
+              {t.breakerNote}
             </small>
 
           </PowerStage>
@@ -820,16 +1227,26 @@ function DigitalPanelTwin({
 
           <PowerStage
             number="3"
-            title="Outgoing Feeder"
-            description="Electrical path carrying power from the breaker toward the connected load."
-            state={feederState}
-            ai={aiFeeder}
+            title={
+              t.outgoingFeeder
+            }
+            description={
+              t.outgoingFeederDesc
+            }
+            state={
+              feederState
+            }
+            ai={
+              aiFeeder
+            }
+            language={
+              safeLanguage
+            }
           >
 
             <div className="stage-reading">
-
               <span>
-                Current measurement
+                {t.currentMeasurement}
               </span>
 
               <strong>
@@ -838,7 +1255,6 @@ function DigitalPanelTwin({
                   1
                 )} A
               </strong>
-
             </div>
 
           </PowerStage>
@@ -849,18 +1265,28 @@ function DigitalPanelTwin({
 
           <PowerStage
             number="4"
-            title="Cable / Load Area"
-            description="Monitored outgoing cable and load area where thermal and PD conditions are observed."
-            state={cableState}
-            ai={aiCable}
+            title={
+              t.cableLoadArea
+            }
+            description={
+              t.cableLoadDesc
+            }
+            state={
+              cableState
+            }
+            ai={
+              aiCable
+            }
+            language={
+              safeLanguage
+            }
           >
 
             <div className="stage-reading-grid">
 
               <div>
-
                 <span>
-                  Cable temperature
+                  {t.cableTemperature}
                 </span>
 
                 <strong>
@@ -870,14 +1296,12 @@ function DigitalPanelTwin({
                     1
                   )} °C
                 </strong>
-
               </div>
 
 
               <div>
-
                 <span>
-                  Partial discharge
+                  {t.partialDischarge}
                 </span>
 
                 <strong>
@@ -886,7 +1310,6 @@ function DigitalPanelTwin({
                     1
                   )}
                 </strong>
-
               </div>
 
             </div>
@@ -899,73 +1322,115 @@ function DigitalPanelTwin({
         <aside className="simple-sensor-panel">
 
           <div className="simple-section-heading">
-
             <div>
-
               <span>
-                SENSOR STATUS
+                {t.sensorStatus}
               </span>
 
               <strong>
-                What is GridGuard seeing?
+                {t.whatSeeing}
               </strong>
-
             </div>
-
           </div>
 
 
           <SensorRow
-            label="Current"
+            label={
+              t.current
+            }
             value={`${formatNumber(
               panel?.current_a,
               1
             )} A`}
-            description="Electrical load measurement"
-            state={currentState}
-            ai={aiCurrent}
+            description={
+              t.currentDesc
+            }
+            state={
+              currentState
+            }
+            ai={
+              aiCurrent
+            }
+            language={
+              safeLanguage
+            }
           />
 
 
           <SensorRow
-            label="Cable Temperature"
+            label={
+              t.cableTemperature
+            }
             value={`${formatNumber(
               panel?.cable_temperature_c,
               1
             )} °C`}
-            description="Cable / surface thermal monitoring"
-            state={thermalState}
-            ai={aiThermal}
+            description={
+              t.cableTempDesc
+            }
+            state={
+              thermalState
+            }
+            ai={
+              aiThermal
+            }
+            language={
+              safeLanguage
+            }
           />
 
 
           <SensorRow
-            label="Partial Discharge"
+            label={
+              t.partialDischarge
+            }
             value={formatNumber(
               panel?.pd_index,
               1
             )}
-            description="PD monitoring channel"
-            state={pdState}
-            ai={aiPd}
+            description={
+              t.pdDesc
+            }
+            state={
+              pdState
+            }
+            ai={
+              aiPd
+            }
+            language={
+              safeLanguage
+            }
           />
 
 
           <SensorRow
-            label="Arc Detection"
+            label={
+              t.arcDetection
+            }
             value={
               panel?.arc_detected
-                ? "DETECTED"
-                : "CLEAR"
+                ? t.detected
+                : t.clear
             }
-            description="Optical arc monitoring"
-            state={arcState}
-            ai={aiArc}
+            description={
+              t.arcDesc
+            }
+            state={
+              arcState
+            }
+            ai={
+              aiArc
+            }
+            language={
+              safeLanguage
+            }
           />
 
 
           <SensorRow
-            label="Ambient"
+            label={
+              t.ambient
+            }
             value={`${formatNumber(
               panel
                 ?.ambient_temperature_c,
@@ -974,9 +1439,18 @@ function DigitalPanelTwin({
               panel?.humidity_pct,
               1
             )}% RH`}
-            description="Panel environment"
-            state={environmentState}
-            ai={aiEnvironment}
+            description={
+              t.ambientDesc
+            }
+            state={
+              environmentState
+            }
+            ai={
+              aiEnvironment
+            }
+            language={
+              safeLanguage
+            }
           />
 
 
@@ -985,7 +1459,6 @@ function DigitalPanelTwin({
             <div className="simple-edge-title">
 
               <div>
-
                 <span>
                   GRIDGUARD EDGE
                 </span>
@@ -993,11 +1466,10 @@ function DigitalPanelTwin({
                 <strong>
                   EDGE-01
                 </strong>
-
               </div>
 
               <span className="simple-virtual-tag">
-                VIRTUAL
+                {t.virtual}
               </span>
 
             </div>
@@ -1006,9 +1478,8 @@ function DigitalPanelTwin({
             <div className="simple-edge-status">
 
               <div>
-
                 <span>
-                  Telemetry
+                  {t.telemetry}
                 </span>
 
                 <strong
@@ -1019,17 +1490,15 @@ function DigitalPanelTwin({
                   }
                 >
                   {telemetryAvailable
-                    ? "CONNECTED"
-                    : "NO DATA"}
+                    ? t.connected
+                    : t.noData}
                 </strong>
-
               </div>
 
 
               <div>
-
                 <span>
-                  Data Quality
+                  {t.dataQuality}
                 </span>
 
                 <strong
@@ -1040,16 +1509,18 @@ function DigitalPanelTwin({
                       : "edge-warning"
                   }
                 >
-                  {dataQuality}
+                  {mapLabel(
+                    QUALITY_LABELS,
+                    safeLanguage,
+                    dataQuality
+                  )}
                 </strong>
-
               </div>
 
 
               <div>
-
                 <span>
-                  AI Analysis
+                  {t.aiAnalysis}
                 </span>
 
                 <strong
@@ -1060,40 +1531,39 @@ function DigitalPanelTwin({
                   }
                 >
                   {intelligence?.available
-                    ? "AVAILABLE"
-                    : "UNAVAILABLE"}
+                    ? t.available
+                    : t.unavailable}
                 </strong>
-
               </div>
 
 
               <div>
-
                 <span>
-                  Prediction
+                  {t.prediction}
                 </span>
 
                 <strong>
-                  {humanize(
+                  {mapLabel(
+                    DECISION_LABELS,
+                    safeLanguage,
                     predictive?.decision
                   )}
                 </strong>
-
               </div>
 
 
               <div>
-
                 <span>
-                  Consensus
+                  {t.consensus}
                 </span>
 
                 <strong>
-                  {humanize(
+                  {mapLabel(
+                    CONSENSUS_LABELS,
+                    safeLanguage,
                     consensus?.status
                   )}
                 </strong>
-
               </div>
 
             </div>
@@ -1108,19 +1578,17 @@ function DigitalPanelTwin({
       <div className="simple-data-flow">
 
         <div>
-
           <span className="data-flow-number">
             1
           </span>
 
           <strong>
-            Field Sensors
+            {t.fieldSensors}
           </strong>
 
           <small>
-            Measure panel conditions
+            {t.measurePanel}
           </small>
-
         </div>
 
 
@@ -1130,7 +1598,6 @@ function DigitalPanelTwin({
 
 
         <div>
-
           <span className="data-flow-number">
             2
           </span>
@@ -1140,9 +1607,8 @@ function DigitalPanelTwin({
           </strong>
 
           <small>
-            Collects and validates data
+            {t.collects}
           </small>
-
         </div>
 
 
@@ -1152,7 +1618,6 @@ function DigitalPanelTwin({
 
 
         <div>
-
           <span className="data-flow-number">
             3
           </span>
@@ -1162,9 +1627,8 @@ function DigitalPanelTwin({
           </strong>
 
           <small>
-            Industrial communication
+            {t.industrialCommunication}
           </small>
-
         </div>
 
 
@@ -1174,19 +1638,17 @@ function DigitalPanelTwin({
 
 
         <div>
-
           <span className="data-flow-number">
             4
           </span>
 
           <strong>
-            GridGuard Server
+            {t.server}
           </strong>
 
           <small>
-            Risk Engine + AI
+            {t.riskEngineAi}
           </small>
-
         </div>
 
       </div>
@@ -1198,39 +1660,34 @@ function DigitalPanelTwin({
 
           <span>
             <StatusDot state="NORMAL" />
-            Normal
+            {t.normal}
           </span>
 
           <span>
             <StatusDot state="WARNING" />
-            Warning
+            {t.warning}
           </span>
 
           <span>
             <StatusDot state="HIGH" />
-            High
+            {t.high}
           </span>
 
           <span>
             <StatusDot state="CRITICAL" />
-            Critical
+            {t.critical}
           </span>
 
           <span>
             <StatusDot ai />
-            AI Early Warning
+            {t.aiEarlyWarning}
           </span>
 
         </div>
 
 
         <p>
-          Conceptual visualization only.
-          Final sensor placement,
-          electrical isolation,
-          protection and installation
-          require qualified electrical
-          engineering validation.
+          {t.conceptual}
         </p>
 
       </div>

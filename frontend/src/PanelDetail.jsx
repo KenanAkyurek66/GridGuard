@@ -1,4 +1,7 @@
-import { useState } from "react";
+import {
+  useMemo,
+  useState,
+} from "react";
 
 import {
   CartesianGrid,
@@ -12,11 +15,525 @@ import {
 } from "recharts";
 
 import AiTimeline from "./AiTimeline";
+
 import "./PanelDetail.css";
 
 
 const API_BASE_URL =
   "http://127.0.0.1:8000";
+
+
+const TEXT = {
+  tr: {
+    panelInspection:
+      "PANO İNCELEMESİ",
+    loading:
+      "Yükleniyor...",
+    close:
+      "Pano ayrıntılarını kapat",
+    loadingPanel:
+      "Pano verileri yükleniyor...",
+    unavailable:
+      "Pano verileri kullanılamıyor.",
+    risk:
+      "Risk",
+    consensus:
+      "Ortak Karar",
+    predictiveRisk:
+      "Tahminsel Risk",
+    behavioralAnomaly:
+      "Davranışsal Anomali",
+    aiUnavailable:
+      "AI kullanılamıyor",
+    unusualBehavior:
+      "Olağandışı davranış",
+    healthyPattern:
+      "Sağlıklı örüntü",
+    dataQuality:
+      "Veri Kalitesi",
+    primaryRisk:
+      "Birincil Risk",
+    confidence:
+      "Güven",
+    layerAgreement:
+      "Katman Uyumu",
+    horizon:
+      "Tahmin Ufku",
+    cycles:
+      "çevrim",
+    lastSeen:
+      "Son Görülme",
+    intelligence:
+      "GRIDGUARD ZEKA KATMANI",
+    earlyTimeline:
+      "Erken Uyarı Zaman Çizelgesi",
+    aiAnalysisUnavailable:
+      "AI analizi kullanılamıyor",
+    aiNotEnough:
+      "AI analizi için yeterli telemetri geçmişi bulunmuyor.",
+    currentInterpretation:
+      "Güncel Yorum",
+    noInterpretation:
+      "Yorum bulunmuyor.",
+    prototypeNotice:
+      "AI çıktısı danışman niteliktedir ve deterministik koruma mantığının yerini almaz.",
+    liveTelemetry:
+      "CANLI TELEMETRİ",
+    currentMeasurements:
+      "Güncel Ölçümler",
+    current:
+      "Akım",
+    cableTemperature:
+      "Kablo Sıcaklığı",
+    ambientTemperature:
+      "Ortam Sıcaklığı",
+    humidity:
+      "Nem",
+    pdIndex:
+      "PD İndeksi",
+    arcDetection:
+      "Ark Algılama",
+    detected:
+      "ALGILANDI",
+    clear:
+      "TEMİZ",
+    explainability:
+      "AÇIKLANABİLİRLİK",
+    whyRated:
+      "Pano neden bu şekilde değerlendiriliyor?",
+    openDetails:
+      "Ayrıntıları Aç",
+    deterministicExplanation:
+      "Deterministik Açıklama",
+    ruleEvidence:
+      "Kural tabanlı kanıt",
+    noExplanation:
+      "Açıklama verisi bulunmuyor.",
+    thermal:
+      "Termal",
+    environment:
+      "Çevresel",
+    partialDischarge:
+      "Kısmi Deşarj",
+    aiDrivers:
+      "AI Etkenleri",
+    xgboost:
+      "XGBoost özellik katkıları",
+    value:
+      "Değer",
+    increasesRisk:
+      "RİSKİ ARTIRIR",
+    decreasesRisk:
+      "RİSKİ AZALTIR",
+    neutral:
+      "NÖTR",
+    noContribution:
+      "Özellik katkısı verisi bulunmuyor.",
+    alarmState:
+      "ALARM DURUMU",
+    activeAlarm:
+      "Aktif Alarm",
+    alarm:
+      "Alarm",
+    opened:
+      "Açılış",
+    noActiveAlarm:
+      "Bu pano için aktif alarm yok.",
+    trendAnalysis:
+      "TREND ANALİZİ",
+    historicalSignals:
+      "Geçmiş Sinyaller",
+    temperature:
+      "Sıcaklık",
+    noCurrentHistory:
+      "Akım geçmişi bulunmuyor.",
+    noTemperatureHistory:
+      "Sıcaklık geçmişi bulunmuyor.",
+    noRiskHistory:
+      "Risk geçmişi bulunmuyor.",
+    riskScore:
+      "Risk Skoru",
+    cable:
+      "Kablo",
+    ambient:
+      "Ortam",
+  },
+
+  en: {
+    panelInspection:
+      "PANEL INSPECTION",
+    loading:
+      "Loading...",
+    close:
+      "Close panel details",
+    loadingPanel:
+      "Loading panel data...",
+    unavailable:
+      "Panel data is unavailable.",
+    risk:
+      "Risk",
+    consensus:
+      "Consensus",
+    predictiveRisk:
+      "Predictive Risk",
+    behavioralAnomaly:
+      "Behavioral Anomaly",
+    aiUnavailable:
+      "AI unavailable",
+    unusualBehavior:
+      "Unusual behavior",
+    healthyPattern:
+      "Healthy pattern",
+    dataQuality:
+      "Data Quality",
+    primaryRisk:
+      "Primary Risk",
+    confidence:
+      "Confidence",
+    layerAgreement:
+      "Layer Agreement",
+    horizon:
+      "Horizon",
+    cycles:
+      "cycles",
+    lastSeen:
+      "Last Seen",
+    intelligence:
+      "GRIDGUARD INTELLIGENCE",
+    earlyTimeline:
+      "Early-Warning Timeline",
+    aiAnalysisUnavailable:
+      "AI analysis unavailable",
+    aiNotEnough:
+      "Not enough telemetry history is available for AI analysis.",
+    currentInterpretation:
+      "Current interpretation",
+    noInterpretation:
+      "No interpretation available.",
+    prototypeNotice:
+      "AI output is advisory and does not replace deterministic protection logic.",
+    liveTelemetry:
+      "LIVE TELEMETRY",
+    currentMeasurements:
+      "Current Measurements",
+    current:
+      "Current",
+    cableTemperature:
+      "Cable Temperature",
+    ambientTemperature:
+      "Ambient Temperature",
+    humidity:
+      "Humidity",
+    pdIndex:
+      "PD Index",
+    arcDetection:
+      "Arc Detection",
+    detected:
+      "DETECTED",
+    clear:
+      "CLEAR",
+    explainability:
+      "EXPLAINABILITY",
+    whyRated:
+      "Why is the panel rated this way?",
+    openDetails:
+      "Open details",
+    deterministicExplanation:
+      "Deterministic Explanation",
+    ruleEvidence:
+      "Rule-based evidence",
+    noExplanation:
+      "No explanation data available.",
+    thermal:
+      "Thermal",
+    environment:
+      "Environment",
+    partialDischarge:
+      "Partial Discharge",
+    aiDrivers:
+      "AI Drivers",
+    xgboost:
+      "XGBoost feature contributions",
+    value:
+      "Value",
+    increasesRisk:
+      "INCREASES RISK",
+    decreasesRisk:
+      "DECREASES RISK",
+    neutral:
+      "NEUTRAL",
+    noContribution:
+      "No feature-contribution data available.",
+    alarmState:
+      "ALARM STATE",
+    activeAlarm:
+      "Active Alarm",
+    alarm:
+      "Alarm",
+    opened:
+      "Opened",
+    noActiveAlarm:
+      "No active alarm for this panel.",
+    trendAnalysis:
+      "TREND ANALYSIS",
+    historicalSignals:
+      "Historical Signals",
+    temperature:
+      "Temperature",
+    noCurrentHistory:
+      "No current history available.",
+    noTemperatureHistory:
+      "No temperature history available.",
+    noRiskHistory:
+      "No risk history available.",
+    riskScore:
+      "Risk Score",
+    cable:
+      "Cable",
+    ambient:
+      "Ambient",
+  },
+};
+
+
+const STATUS_LABELS = {
+  tr: {
+    NORMAL: "Normal",
+    WARNING: "Uyarı",
+    HIGH: "Yüksek",
+    CRITICAL: "Kritik",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    NORMAL: "Normal",
+    WARNING: "Warning",
+    HIGH: "High",
+    CRITICAL: "Critical",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const QUALITY_LABELS = {
+  tr: {
+    GOOD: "İyi",
+    DEGRADED: "Düşük Kalite",
+    BAD: "Hatalı",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    GOOD: "Good",
+    DEGRADED: "Degraded",
+    BAD: "Bad",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const PRIMARY_RISK_LABELS = {
+  tr: {
+    NONE: "Yok",
+    NO_DATA: "Veri Yok",
+    THERMAL: "Termal",
+    CURRENT: "Akım",
+    OVERCURRENT: "Aşırı Akım",
+    PARTIAL_DISCHARGE: "Kısmi Deşarj",
+    ENVIRONMENT: "Çevresel",
+    ARC_FLASH: "Ark Parlaması",
+  },
+  en: {
+    NONE: "None",
+    NO_DATA: "No Data",
+    THERMAL: "Thermal",
+    CURRENT: "Current",
+    OVERCURRENT: "Overcurrent",
+    PARTIAL_DISCHARGE: "Partial Discharge",
+    ENVIRONMENT: "Environment",
+    ARC_FLASH: "Arc Flash",
+  },
+};
+
+
+const CONSENSUS_LABELS = {
+  tr: {
+    OBSERVE: "İzle",
+    EARLY_WARNING: "Erken Uyarı",
+    CRITICAL: "Kritik",
+    HOLD_UNRELIABLE: "Güvenilmez Veriyi Tut",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    OBSERVE: "Observe",
+    EARLY_WARNING: "Early Warning",
+    CRITICAL: "Critical",
+    HOLD_UNRELIABLE: "Hold Unreliable",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const CONFIDENCE_LABELS = {
+  tr: {
+    LOW: "Düşük",
+    MEDIUM: "Orta",
+    HIGH: "Yüksek",
+    VERY_HIGH: "Çok Yüksek",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    LOW: "Low",
+    MEDIUM: "Medium",
+    HIGH: "High",
+    VERY_HIGH: "Very High",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const PREDICTION_LABELS = {
+  tr: {
+    SAFE: "Güvenli",
+    HOLD: "İzlemede",
+    ESCALATION: "Yükselt",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    SAFE: "Safe",
+    HOLD: "Hold",
+    ESCALATION: "Escalation",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const ANOMALY_LABELS = {
+  tr: {
+    NORMAL: "Normal",
+    LOW: "Düşük",
+    MEDIUM: "Orta",
+    HIGH: "Yüksek",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    NORMAL: "Normal",
+    LOW: "Low",
+    MEDIUM: "Medium",
+    HIGH: "High",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const DRIVER_LABELS = {
+  tr: {
+    current_a: "Akım",
+    cable_temperature_c:
+      "Kablo Sıcaklığı",
+    ambient_temperature_c:
+      "Ortam Sıcaklığı",
+    humidity_pct:
+      "Nem",
+    pd_index:
+      "PD İndeksi",
+    arc_detected:
+      "Ark Algılama",
+    current_delta:
+      "Akım Değişimi",
+    temperature_delta:
+      "Sıcaklık Değişimi",
+    cable_temp_delta:
+      "Kablo Sıcaklığı Değişimi",
+  },
+  en: {},
+};
+
+
+const BACKEND_TEXT_TR = {
+  "No telemetry data available.":
+    "Telemetri verisi bulunmuyor.",
+  "Arc flash event detected.":
+    "Ark parlaması olayı algılandı.",
+  "Immediate operator attention required.":
+    "Acil operatör müdahalesi gerekiyor.",
+  "Current increased more than 35% above recent baseline.":
+    "Akım, yakın dönem baz değerinin %35'ten fazla üzerine çıktı.",
+  "Current increased more than 20% above recent baseline.":
+    "Akım, yakın dönem baz değerinin %20'den fazla üzerine çıktı.",
+  "Current is rising above recent baseline.":
+    "Akım, yakın dönem baz değerinin üzerine yükseliyor.",
+  "Cable temperature is extremely high.":
+    "Kablo sıcaklığı son derece yüksek.",
+  "Cable temperature is critically elevated.":
+    "Kablo sıcaklığı kritik düzeyde yükselmiş.",
+  "Cable temperature is elevated.":
+    "Kablo sıcaklığı yükselmiş.",
+  "Cable-to-ambient thermal delta is very high.":
+    "Kablo ile ortam arasındaki sıcaklık farkı çok yüksek.",
+  "Abnormal cable-to-ambient thermal delta detected.":
+    "Kablo ile ortam arasında anormal sıcaklık farkı algılandı.",
+  "Cable temperature is rising rapidly while ambient temperature remains relatively stable.":
+    "Ortam sıcaklığı görece kararlı kalırken kablo sıcaklığı hızla yükseliyor.",
+  "Very high humidity detected.":
+    "Çok yüksek nem algılandı.",
+  "High humidity detected.":
+    "Yüksek nem algılandı.",
+  "Partial discharge activity is very high.":
+    "Kısmi deşarj etkinliği çok yüksek.",
+  "Elevated partial discharge activity detected.":
+    "Yükselmiş kısmi deşarj etkinliği algılandı.",
+  "Partial discharge activity is above normal range.":
+    "Kısmi deşarj etkinliği normal aralığın üzerinde.",
+  "Partial discharge activity shows a strong rising trend.":
+    "Kısmi deşarj etkinliği güçlü bir yükseliş eğilimi gösteriyor.",
+  "Partial discharge activity is increasing over time.":
+    "Kısmi deşarj etkinliği zaman içinde artıyor.",
+  "Severe thermal escalation pattern detected.":
+    "Şiddetli termal yükseliş örüntüsü algılandı.",
+  "Rising partial discharge pattern detected.":
+    "Yükselen kısmi deşarj örüntüsü algılandı.",
+  "Severe partial discharge escalation pattern detected.":
+    "Şiddetli kısmi deşarj yükseliş örüntüsü algılandı.",
+  "No significant anomaly detected.":
+    "Belirgin bir anomali algılanmadı.",
+  "No strong signals are currently present.":
+    "Şu anda güçlü bir risk sinyali bulunmuyor.",
+  "Deterministic risk is critical and has priority over AI advisory output.":
+    "Deterministik risk kritiktir ve AI danışman çıktısına göre önceliklidir.",
+  "AI output is advisory and does not replace deterministic protection logic.":
+    "AI çıktısı danışman niteliktedir ve deterministik koruma mantığının yerini almaz.",
+  "Insufficient trusted telemetry history for AI analysis.":
+    "AI analizi için yeterli güvenilir telemetri geçmişi bulunmuyor.",
+  "Unusual behavior detected without confirmed future escalation.":
+    "Gelecekte kesin bir risk artışı doğrulanmadan olağandışı davranış algılandı.",
+  "ML models are trained on synthetic prototype telemetry and require field calibration before production use.":
+    "Makine öğrenmesi modelleri sentetik prototip telemetrisiyle eğitilmiştir; gerçek kullanım öncesinde saha kalibrasyonu gerekir.",
+  "Unusual behavior detected.":
+    "Olağandışı davranış algılandı.",
+  "No unusual behavior detected.":
+    "Olağandışı davranış algılanmadı.",
+};
+
+
+function mapLabel(
+  map,
+  language,
+  value
+) {
+  const key =
+    String(
+      value ?? "UNKNOWN"
+    ).toUpperCase();
+
+  return (
+    map?.[language]?.[key] ??
+    String(
+      value ?? "--"
+    ).replaceAll(
+      "_",
+      " "
+    )
+  );
+}
 
 
 function formatNumber(
@@ -30,7 +547,9 @@ function formatNumber(
     return "--";
   }
 
-  return Number(value).toFixed(digits);
+  return Number(
+    value
+  ).toFixed(digits);
 }
 
 
@@ -45,17 +564,9 @@ function formatPercent(
     return "--";
   }
 
-  return `${Number(value).toFixed(digits)}%`;
-}
-
-
-function humanize(value) {
-  if (!value) {
-    return "UNKNOWN";
-  }
-
-  return String(value)
-    .replaceAll("_", " ");
+  return `${Number(
+    value
+  ).toFixed(digits)}%`;
 }
 
 
@@ -64,11 +575,17 @@ function statusClass(value) {
     value ?? "unknown"
   )
     .toLowerCase()
-    .replaceAll("_", "-");
+    .replaceAll(
+      "_",
+      "-"
+    );
 }
 
 
-function formatTime(value) {
+function formatTime(
+  value,
+  language
+) {
   if (!value) {
     return "--";
   }
@@ -76,7 +593,9 @@ function formatTime(value) {
   return new Date(
     value
   ).toLocaleTimeString(
-    "tr-TR",
+    language === "tr"
+      ? "tr-TR"
+      : "en-GB",
     {
       hour: "2-digit",
       minute: "2-digit",
@@ -86,24 +605,149 @@ function formatTime(value) {
 }
 
 
+function translateBackendText(
+  value,
+  language
+) {
+  if (!value) {
+    return "";
+  }
+
+  if (
+    language !== "tr"
+  ) {
+    return value;
+  }
+
+  let translated =
+    BACKEND_TEXT_TR[
+      value
+    ] ??
+    String(value);
+
+  for (
+    const [
+      source,
+      target,
+    ] of Object.entries(
+      BACKEND_TEXT_TR
+    )
+  ) {
+    translated =
+      translated.replaceAll(
+        source,
+        target
+      );
+  }
+
+  return translated
+    .replace(
+      /cable temperature/gi,
+      "kablo sıcaklığı"
+    )
+    .replace(
+      /partial discharge/gi,
+      "kısmi deşarj"
+    )
+    .replace(
+      /ambient temperature/gi,
+      "ortam sıcaklığı"
+    )
+    .replace(
+      /humidity/gi,
+      "nem"
+    )
+    .replace(
+      /current/gi,
+      "akım"
+    );
+}
+
+
+function driverLabel(
+  driver,
+  language
+) {
+  if (
+    language === "en"
+  ) {
+    return (
+      driver?.label ??
+      String(
+        driver?.feature ??
+        "--"
+      ).replaceAll(
+        "_",
+        " "
+      )
+    );
+  }
+
+  const feature =
+    driver?.feature;
+
+  if (
+    feature &&
+    DRIVER_LABELS.tr[
+      feature
+    ]
+  ) {
+    return DRIVER_LABELS.tr[
+      feature
+    ];
+  }
+
+  const original =
+    driver?.label ??
+    String(
+      feature ?? "--"
+    ).replaceAll(
+      "_",
+      " "
+    );
+
+  return String(original)
+    .replace(
+      /Cable Temperature/gi,
+      "Kablo Sıcaklığı"
+    )
+    .replace(
+      /Ambient Temperature/gi,
+      "Ortam Sıcaklığı"
+    )
+    .replace(
+      /Partial Discharge/gi,
+      "Kısmi Deşarj"
+    )
+    .replace(
+      /Current/gi,
+      "Akım"
+    )
+    .replace(
+      /Humidity/gi,
+      "Nem"
+    );
+}
+
+
 function prepareTelemetryChart(
-  history = []
+  history = [],
+  language
 ) {
   return history.map(
     (item) => ({
       time: formatTime(
-        item.timestamp
+        item.timestamp,
+        language
       ),
-
       current:
         item.current_a,
-
       cableTemperature:
-        item.cable_temperature_c,
-
+        item
+          .cable_temperature_c,
       ambientTemperature:
-        item.ambient_temperature_c,
-
+        item
+          .ambient_temperature_c,
       pd:
         item.pd_index,
     })
@@ -112,14 +756,15 @@ function prepareTelemetryChart(
 
 
 function prepareRiskChart(
-  history = []
+  history = [],
+  language
 ) {
   return history.map(
     (item) => ({
       time: formatTime(
-        item.timestamp
+        item.timestamp,
+        language
       ),
-
       risk:
         item.risk_score,
     })
@@ -130,9 +775,10 @@ function prepareRiskChart(
 export async function fetchPanelDetail(
   panelId
 ) {
-  const response = await fetch(
-    `${API_BASE_URL}/dashboard/panels/${panelId}/detail?history_limit=30`
-  );
+  const response =
+    await fetch(
+      `${API_BASE_URL}/dashboard/panels/${panelId}/detail?history_limit=30`
+    );
 
   if (!response.ok) {
     throw new Error(
@@ -149,9 +795,22 @@ function PanelDetail({
   loading,
   error,
   onClose,
+  language = "tr",
 }) {
-  const [trendTab, setTrendTab] =
-    useState("current");
+  const safeLanguage =
+    language === "en"
+      ? "en"
+      : "tr";
+
+  const t =
+    TEXT[safeLanguage];
+
+  const [
+    trendTab,
+    setTrendTab,
+  ] = useState(
+    "current"
+  );
 
   const panel =
     detail?.panel;
@@ -178,13 +837,32 @@ function PanelDetail({
     intelligence?.explainability;
 
   const telemetryChart =
-    prepareTelemetryChart(
-      detail?.telemetry_history
+    useMemo(
+      () =>
+        prepareTelemetryChart(
+          detail?.telemetry_history ??
+            [],
+          safeLanguage
+        ),
+      [
+        detail
+          ?.telemetry_history,
+        safeLanguage,
+      ]
     );
 
   const riskChart =
-    prepareRiskChart(
-      detail?.risk_history
+    useMemo(
+      () =>
+        prepareRiskChart(
+          detail?.risk_history ??
+            [],
+          safeLanguage
+        ),
+      [
+        detail?.risk_history,
+        safeLanguage,
+      ]
     );
 
   const predictiveProbability =
@@ -195,28 +873,38 @@ function PanelDetail({
 
   const anomalyLabel =
     intelligence?.available
-      ? humanize(
+      ? mapLabel(
+          ANOMALY_LABELS,
+          safeLanguage,
           anomaly?.level
         )
-      : "UNAVAILABLE";
+      : t.aiUnavailable;
 
   const consensusLabel =
     intelligence?.available
-      ? humanize(
+      ? mapLabel(
+          CONSENSUS_LABELS,
+          safeLanguage,
           consensus?.status
         )
-      : "UNAVAILABLE";
+      : t.aiUnavailable;
 
 
   function renderTrendChart() {
-    if (trendTab === "current") {
-      return telemetryChart.length > 0 ? (
+    if (
+      trendTab ===
+      "current"
+    ) {
+      return telemetryChart
+        .length > 0 ? (
         <ResponsiveContainer
           width="100%"
           height="100%"
         >
           <LineChart
-            data={telemetryChart}
+            data={
+              telemetryChart
+            }
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -243,29 +931,39 @@ function PanelDetail({
             <Line
               type="monotone"
               dataKey="current"
-              name="Current (A)"
+              name={`${t.current} (A)`}
               stroke="#55bedf"
               strokeWidth={2.5}
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={
+                false
+              }
             />
           </LineChart>
         </ResponsiveContainer>
       ) : (
         <div className="detail-chart-empty">
-          No current history available.
+          {
+            t.noCurrentHistory
+          }
         </div>
       );
     }
 
-    if (trendTab === "temperature") {
-      return telemetryChart.length > 0 ? (
+    if (
+      trendTab ===
+      "temperature"
+    ) {
+      return telemetryChart
+        .length > 0 ? (
         <ResponsiveContainer
           width="100%"
           height="100%"
         >
           <LineChart
-            data={telemetryChart}
+            data={
+              telemetryChart
+            }
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -293,38 +991,47 @@ function PanelDetail({
             <Line
               type="monotone"
               dataKey="cableTemperature"
-              name="Cable °C"
+              name={`${t.cable} °C`}
               stroke="#ff8a4c"
               strokeWidth={2.5}
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={
+                false
+              }
             />
 
             <Line
               type="monotone"
               dataKey="ambientTemperature"
-              name="Ambient °C"
+              name={`${t.ambient} °C`}
               stroke="#55bedf"
               strokeWidth={2}
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={
+                false
+              }
             />
           </LineChart>
         </ResponsiveContainer>
       ) : (
         <div className="detail-chart-empty">
-          No temperature history available.
+          {
+            t.noTemperatureHistory
+          }
         </div>
       );
     }
 
-    return riskChart.length > 0 ? (
+    return riskChart.length >
+    0 ? (
       <ResponsiveContainer
         width="100%"
         height="100%"
       >
         <LineChart
-          data={riskChart}
+          data={
+            riskChart
+          }
         >
           <CartesianGrid
             strokeDasharray="3 3"
@@ -340,7 +1047,10 @@ function PanelDetail({
           />
 
           <YAxis
-            domain={[0, 100]}
+            domain={[
+              0,
+              100,
+            ]}
             stroke="#60798b"
             tick={{
               fontSize: 9,
@@ -352,17 +1062,23 @@ function PanelDetail({
           <Line
             type="monotone"
             dataKey="risk"
-            name="Risk Score"
+            name={
+              t.riskScore
+            }
             stroke="#ff5d6c"
             strokeWidth={2.5}
             dot={false}
-            isAnimationActive={false}
+            isAnimationActive={
+              false
+            }
           />
         </LineChart>
       </ResponsiveContainer>
     ) : (
       <div className="detail-chart-empty">
-        No risk history available.
+        {
+          t.noRiskHistory
+        }
       </div>
     );
   }
@@ -381,20 +1097,27 @@ function PanelDetail({
 
           <div>
             <p className="eyebrow">
-              PANEL INSPECTION
+              {
+                t.panelInspection
+              }
             </p>
 
             <h2>
-              {panel?.panel_id ??
-                "Loading..."}
+              {panel
+                ?.panel_id ??
+                t.loading}
             </h2>
           </div>
 
           <button
             className="detail-close"
-            onClick={onClose}
+            onClick={
+              onClose
+            }
             type="button"
-            aria-label="Close panel details"
+            aria-label={
+              t.close
+            }
           >
             ×
           </button>
@@ -405,7 +1128,9 @@ function PanelDetail({
         {loading ? (
 
           <div className="detail-loading">
-            Loading panel data...
+            {
+              t.loadingPanel
+            }
           </div>
 
         ) : error ? (
@@ -417,7 +1142,9 @@ function PanelDetail({
         ) : !detail ? (
 
           <div className="detail-error">
-            Panel data is unavailable.
+            {
+              t.unavailable
+            }
           </div>
 
         ) : (
@@ -429,13 +1156,15 @@ function PanelDetail({
               <article className="pd-hero-card risk">
 
                 <span>
-                  Risk
+                  {t.risk}
                 </span>
 
                 <div className="pd-hero-value-row">
 
                   <strong>
-                    {risk?.risk_score ?? 0}
+                    {risk
+                      ?.risk_score ??
+                      0}
                   </strong>
 
                   <span
@@ -444,15 +1173,21 @@ function PanelDetail({
                       "unknown"
                     ).toLowerCase()}`}
                   >
-                    {risk?.status ??
-                      "UNKNOWN"}
+                    {mapLabel(
+                      STATUS_LABELS,
+                      safeLanguage,
+                      risk?.status
+                    )}
                   </span>
 
                 </div>
 
                 <small>
-                  {humanize(
-                    risk?.primary_risk ??
+                  {mapLabel(
+                    PRIMARY_RISK_LABELS,
+                    safeLanguage,
+                    risk
+                      ?.primary_risk ??
                       "NO_DATA"
                   )}
                 </small>
@@ -463,23 +1198,32 @@ function PanelDetail({
               <article className="pd-hero-card consensus">
 
                 <span>
-                  Consensus
+                  {
+                    t.consensus
+                  }
                 </span>
 
                 <strong
                   className={`pd-consensus-value ${statusClass(
-                    consensus?.status
+                    consensus
+                      ?.status
                   )}`}
                 >
-                  {consensusLabel}
+                  {
+                    consensusLabel
+                  }
                 </strong>
 
                 <small>
-                  {intelligence?.available
-                    ? humanize(
-                        consensus?.confidence
+                  {intelligence
+                    ?.available
+                    ? mapLabel(
+                        CONFIDENCE_LABELS,
+                        safeLanguage,
+                        consensus
+                          ?.confidence
                       )
-                    : "AI unavailable"}
+                    : t.aiUnavailable}
                 </small>
 
               </article>
@@ -488,11 +1232,14 @@ function PanelDetail({
               <article className="pd-hero-card predictive">
 
                 <span>
-                  Predictive Risk
+                  {
+                    t.predictiveRisk
+                  }
                 </span>
 
                 <strong>
-                  {intelligence?.available
+                  {intelligence
+                    ?.available
                     ? formatPercent(
                         predictiveProbability,
                         1
@@ -501,14 +1248,18 @@ function PanelDetail({
                 </strong>
 
                 <small>
-                  {intelligence?.available
-                    ? humanize(
+                  {intelligence
+                    ?.available
+                    ? mapLabel(
+                        PREDICTION_LABELS,
+                        safeLanguage,
                         predictiveDecision
                       )
-                    : "AI unavailable"}
+                    : t.aiUnavailable}
                 </small>
 
-                {intelligence?.available && (
+                {intelligence
+                  ?.available && (
                   <div className="pd-probability-track">
                     <div
                       className="pd-probability-fill"
@@ -534,25 +1285,32 @@ function PanelDetail({
               <article className="pd-hero-card anomaly">
 
                 <span>
-                  Behavioral Anomaly
+                  {
+                    t.behavioralAnomaly
+                  }
                 </span>
 
                 <strong
                   className={
-                    anomaly?.detected
+                    anomaly
+                      ?.detected
                       ? "ai-alert-text"
                       : "safe-text"
                   }
                 >
-                  {anomalyLabel}
+                  {
+                    anomalyLabel
+                  }
                 </strong>
 
                 <small>
-                  {intelligence?.available
-                    ? anomaly?.detected
-                      ? "Unusual behavior"
-                      : "Healthy pattern"
-                    : "AI unavailable"}
+                  {intelligence
+                    ?.available
+                    ? anomaly
+                        ?.detected
+                      ? t.unusualBehavior
+                      : t.healthyPattern
+                    : t.aiUnavailable}
                 </small>
 
               </article>
@@ -564,27 +1322,39 @@ function PanelDetail({
 
               <div>
                 <span>
-                  Data Quality
+                  {
+                    t.dataQuality
+                  }
                 </span>
 
                 <strong
                   className={`pd-quality ${statusClass(
-                    panel?.data_quality
+                    panel
+                      ?.data_quality
                   )}`}
                 >
-                  {panel?.data_quality ??
-                    "UNKNOWN"}
+                  {mapLabel(
+                    QUALITY_LABELS,
+                    safeLanguage,
+                    panel
+                      ?.data_quality
+                  )}
                 </strong>
               </div>
 
               <div>
                 <span>
-                  Primary Risk
+                  {
+                    t.primaryRisk
+                  }
                 </span>
 
                 <strong>
-                  {humanize(
-                    risk?.primary_risk ??
+                  {mapLabel(
+                    PRIMARY_RISK_LABELS,
+                    safeLanguage,
+                    risk
+                      ?.primary_risk ??
                       "NO_DATA"
                   )}
                 </strong>
@@ -592,13 +1362,19 @@ function PanelDetail({
 
               <div>
                 <span>
-                  Confidence
+                  {
+                    t.confidence
+                  }
                 </span>
 
                 <strong>
-                  {intelligence?.available
-                    ? humanize(
-                        consensus?.confidence
+                  {intelligence
+                    ?.available
+                    ? mapLabel(
+                        CONFIDENCE_LABELS,
+                        safeLanguage,
+                        consensus
+                          ?.confidence
                       )
                     : "--"}
                 </strong>
@@ -606,11 +1382,14 @@ function PanelDetail({
 
               <div>
                 <span>
-                  Layer Agreement
+                  {
+                    t.layerAgreement
+                  }
                 </span>
 
                 <strong>
-                  {intelligence?.available
+                  {intelligence
+                    ?.available
                     ? `${consensus?.strong_signal_count ?? 0}/3`
                     : "--"}
                 </strong>
@@ -618,24 +1397,31 @@ function PanelDetail({
 
               <div>
                 <span>
-                  Horizon
+                  {
+                    t.horizon
+                  }
                 </span>
 
                 <strong>
-                  {intelligence?.available
-                    ? `${predictive?.prediction_horizon_cycles ?? "--"} cycles`
+                  {intelligence
+                    ?.available
+                    ? `${predictive?.prediction_horizon_cycles ?? "--"} ${t.cycles}`
                     : "--"}
                 </strong>
               </div>
 
               <div>
                 <span>
-                  Last Seen
+                  {
+                    t.lastSeen
+                  }
                 </span>
 
                 <strong>
                   {formatTime(
-                    panel?.last_seen
+                    panel
+                      ?.last_seen,
+                    safeLanguage
                   )}
                 </strong>
               </div>
@@ -649,37 +1435,52 @@ function PanelDetail({
 
                 <div>
                   <p className="eyebrow">
-                    GRIDGUARD INTELLIGENCE
+                    {
+                      t.intelligence
+                    }
                   </p>
 
                   <h3>
-                    Early-Warning Timeline
+                    {
+                      t.earlyTimeline
+                    }
                   </h3>
                 </div>
 
-                {intelligence?.available && (
+                {intelligence
+                  ?.available && (
                   <span
                     className={`intelligence-status ${statusClass(
-                      consensus?.status
+                      consensus
+                        ?.status
                     )}`}
                   >
-                    {consensusLabel}
+                    {
+                      consensusLabel
+                    }
                   </span>
                 )}
 
               </div>
 
-              {!intelligence?.available ? (
+              {!intelligence
+                ?.available ? (
 
                 <div className="intelligence-unavailable">
 
                   <strong>
-                    AI analysis unavailable
+                    {
+                      t.aiAnalysisUnavailable
+                    }
                   </strong>
 
                   <p>
-                    {intelligence?.reason ??
-                      "Not enough telemetry history is available for AI analysis."}
+                    {translateBackendText(
+                      intelligence
+                        ?.reason,
+                      safeLanguage
+                    ) ||
+                      t.aiNotEnough}
                   </p>
 
                 </div>
@@ -688,29 +1489,52 @@ function PanelDetail({
 
                 <>
                   <AiTimeline
-                    key={panel?.panel_id}
-                    panel={panel}
-                    risk={risk}
-                    intelligence={intelligence}
+                    key={
+                      panel
+                        ?.panel_id
+                    }
+                    panel={
+                      panel
+                    }
+                    risk={
+                      risk
+                    }
+                    intelligence={
+                      intelligence
+                    }
+                    language={
+                      safeLanguage
+                    }
                   />
 
                   <div className="pd-intelligence-note">
 
                     <div>
                       <span>
-                        Current interpretation
+                        {
+                          t.currentInterpretation
+                        }
                       </span>
 
                       <strong>
-                        {consensus?.summary ??
-                          predictive?.reason ??
-                          "No interpretation available."}
+                        {translateBackendText(
+                          consensus
+                            ?.summary ??
+                            predictive
+                              ?.reason,
+                          safeLanguage
+                        ) ||
+                          t.noInterpretation}
                       </strong>
                     </div>
 
                     <p>
-                      {intelligence?.prototype_notice ??
-                        "AI output is advisory and does not replace deterministic protection logic."}
+                      {translateBackendText(
+                        intelligence
+                          ?.prototype_notice,
+                        safeLanguage
+                      ) ||
+                        t.prototypeNotice}
                     </p>
 
                   </div>
@@ -726,11 +1550,15 @@ function PanelDetail({
               <div className="detail-section-title">
 
                 <p className="eyebrow">
-                  LIVE TELEMETRY
+                  {
+                    t.liveTelemetry
+                  }
                 </p>
 
                 <h3>
-                  Current Measurements
+                  {
+                    t.currentMeasurements
+                  }
                 </h3>
 
               </div>
@@ -739,12 +1567,15 @@ function PanelDetail({
 
                 <article>
                   <span>
-                    Current
+                    {
+                      t.current
+                    }
                   </span>
 
                   <strong>
                     {formatNumber(
-                      panel?.current_a,
+                      panel
+                        ?.current_a,
                       1
                     )} A
                   </strong>
@@ -752,12 +1583,15 @@ function PanelDetail({
 
                 <article>
                   <span>
-                    Cable Temperature
+                    {
+                      t.cableTemperature
+                    }
                   </span>
 
                   <strong>
                     {formatNumber(
-                      panel?.cable_temperature_c,
+                      panel
+                        ?.cable_temperature_c,
                       1
                     )} °C
                   </strong>
@@ -765,12 +1599,15 @@ function PanelDetail({
 
                 <article>
                   <span>
-                    Ambient Temperature
+                    {
+                      t.ambientTemperature
+                    }
                   </span>
 
                   <strong>
                     {formatNumber(
-                      panel?.ambient_temperature_c,
+                      panel
+                        ?.ambient_temperature_c,
                       1
                     )} °C
                   </strong>
@@ -778,12 +1615,15 @@ function PanelDetail({
 
                 <article>
                   <span>
-                    Humidity
+                    {
+                      t.humidity
+                    }
                   </span>
 
                   <strong>
                     {formatNumber(
-                      panel?.humidity_pct,
+                      panel
+                        ?.humidity_pct,
                       1
                     )} %
                   </strong>
@@ -791,12 +1631,15 @@ function PanelDetail({
 
                 <article>
                   <span>
-                    PD Index
+                    {
+                      t.pdIndex
+                    }
                   </span>
 
                   <strong>
                     {formatNumber(
-                      panel?.pd_index,
+                      panel
+                        ?.pd_index,
                       1
                     )}
                   </strong>
@@ -804,19 +1647,23 @@ function PanelDetail({
 
                 <article>
                   <span>
-                    Arc Detection
+                    {
+                      t.arcDetection
+                    }
                   </span>
 
                   <strong
                     className={
-                      panel?.arc_detected
+                      panel
+                        ?.arc_detected
                         ? "danger-text"
                         : "safe-text"
                     }
                   >
-                    {panel?.arc_detected
-                      ? "DETECTED"
-                      : "CLEAR"}
+                    {panel
+                      ?.arc_detected
+                      ? t.detected
+                      : t.clear}
                   </strong>
                 </article>
 
@@ -831,16 +1678,22 @@ function PanelDetail({
 
                 <div>
                   <p className="eyebrow">
-                    EXPLAINABILITY
+                    {
+                      t.explainability
+                    }
                   </p>
 
                   <h3>
-                    Why is the panel rated this way?
+                    {
+                      t.whyRated
+                    }
                   </h3>
                 </div>
 
                 <span className="pd-disclosure-hint">
-                  Open details
+                  {
+                    t.openDetails
+                  }
                 </span>
 
               </summary>
@@ -853,11 +1706,15 @@ function PanelDetail({
                   <div className="pd-subheading">
 
                     <strong>
-                      Deterministic Explanation
+                      {
+                        t.deterministicExplanation
+                      }
                     </strong>
 
                     <span>
-                      Rule-based evidence
+                      {
+                        t.ruleEvidence
+                      }
                     </span>
 
                   </div>
@@ -865,10 +1722,20 @@ function PanelDetail({
 
                   <div className="cause-list">
 
-                    {(risk?.causes ?? []).length > 0 ? (
+                    {(risk
+                      ?.causes ??
+                      []).length >
+                    0 ? (
 
-                      (risk?.causes ?? []).map(
-                        (cause, index) => (
+                      (
+                        risk
+                          ?.causes ??
+                        []
+                      ).map(
+                        (
+                          cause,
+                          index
+                        ) => (
 
                           <div
                             className="cause-item"
@@ -876,11 +1743,17 @@ function PanelDetail({
                           >
 
                             <span>
-                              {index + 1}
+                              {
+                                index +
+                                1
+                              }
                             </span>
 
                             <p>
-                              {cause}
+                              {translateBackendText(
+                                cause,
+                                safeLanguage
+                              )}
                             </p>
 
                           </div>
@@ -897,7 +1770,9 @@ function PanelDetail({
                         </span>
 
                         <p>
-                          No explanation data available.
+                          {
+                            t.noExplanation
+                          }
                         </p>
 
                       </div>
@@ -911,45 +1786,61 @@ function PanelDetail({
 
                     <div>
                       <span>
-                        Current
+                        {
+                          t.current
+                        }
                       </span>
 
                       <strong>
-                        {risk?.component_scores
-                          ?.current ?? 0}
+                        {risk
+                          ?.component_scores
+                          ?.current ??
+                          0}
                       </strong>
                     </div>
 
                     <div>
                       <span>
-                        Thermal
+                        {
+                          t.thermal
+                        }
                       </span>
 
                       <strong>
-                        {risk?.component_scores
-                          ?.thermal ?? 0}
+                        {risk
+                          ?.component_scores
+                          ?.thermal ??
+                          0}
                       </strong>
                     </div>
 
                     <div>
                       <span>
-                        Environment
+                        {
+                          t.environment
+                        }
                       </span>
 
                       <strong>
-                        {risk?.component_scores
-                          ?.environment ?? 0}
+                        {risk
+                          ?.component_scores
+                          ?.environment ??
+                          0}
                       </strong>
                     </div>
 
                     <div>
                       <span>
-                        Partial Discharge
+                        {
+                          t.partialDischarge
+                        }
                       </span>
 
                       <strong>
-                        {risk?.component_scores
-                          ?.partial_discharge ?? 0}
+                        {risk
+                          ?.component_scores
+                          ?.partial_discharge ??
+                          0}
                       </strong>
                     </div>
 
@@ -963,22 +1854,34 @@ function PanelDetail({
                   <div className="pd-subheading">
 
                     <strong>
-                      AI Drivers
+                      {
+                        t.aiDrivers
+                      }
                     </strong>
 
                     <span>
-                      XGBoost feature contributions
+                      {
+                        t.xgboost
+                      }
                     </span>
 
                   </div>
 
 
-                  {(explainability?.top_drivers ?? []).length > 0 ? (
+                  {(explainability
+                    ?.top_drivers ??
+                    []).length >
+                  0 ? (
 
                     <div className="ai-driver-list pd-driver-list">
 
-                      {(explainability?.top_drivers ?? []).map(
-                        (driver, index) => (
+                      {(explainability
+                        ?.top_drivers ??
+                        []).map(
+                        (
+                          driver,
+                          index
+                        ) => (
 
                           <div
                             className="ai-driver-row"
@@ -986,18 +1889,26 @@ function PanelDetail({
                           >
 
                             <div className="ai-driver-rank">
-                              {index + 1}
+                              {
+                                index +
+                                1
+                              }
                             </div>
 
                             <div className="ai-driver-copy">
 
                               <strong>
-                                {driver.label}
+                                {driverLabel(
+                                  driver,
+                                  safeLanguage
+                                )}
                               </strong>
 
                               <span>
-                                Value: {formatNumber(
-                                  driver.value,
+                                {t.value}:{" "}
+                                {formatNumber(
+                                  driver
+                                    .value,
                                   2
                                 )}
                               </span>
@@ -1017,11 +1928,13 @@ function PanelDetail({
                             >
 
                               <strong>
-                                {driver.contribution > 0
+                                {driver.contribution >
+                                0
                                   ? "+"
                                   : ""}
                                 {formatNumber(
-                                  driver.contribution,
+                                  driver
+                                    .contribution,
                                   3
                                 )}
                               </strong>
@@ -1029,11 +1942,11 @@ function PanelDetail({
                               <span>
                                 {driver.direction ===
                                 "INCREASES_RISK"
-                                  ? "INCREASES RISK"
+                                  ? t.increasesRisk
                                   : driver.direction ===
                                     "DECREASES_RISK"
-                                  ? "DECREASES RISK"
-                                  : "NEUTRAL"}
+                                  ? t.decreasesRisk
+                                  : t.neutral}
                               </span>
 
                             </div>
@@ -1048,7 +1961,9 @@ function PanelDetail({
                   ) : (
 
                     <div className="intelligence-unavailable compact">
-                      No feature-contribution data available.
+                      {
+                        t.noContribution
+                      }
                     </div>
 
                   )}
@@ -1065,11 +1980,15 @@ function PanelDetail({
               <div className="detail-section-title">
 
                 <p className="eyebrow">
-                  ALARM STATE
+                  {
+                    t.alarmState
+                  }
                 </p>
 
                 <h3>
-                  Active Alarm
+                  {
+                    t.activeAlarm
+                  }
                 </h3>
 
               </div>
@@ -1082,39 +2001,57 @@ function PanelDetail({
 
                     <span
                       className={`detail-status ${(
-                        activeAlarm.severity ??
+                        activeAlarm
+                          .severity ??
                         "unknown"
                       ).toLowerCase()}`}
                     >
-                      {activeAlarm.severity}
+                      {mapLabel(
+                        STATUS_LABELS,
+                        safeLanguage,
+                        activeAlarm
+                          .severity
+                      )}
                     </span>
 
                     <strong>
-                      Alarm #{activeAlarm.id}
+                      {t.alarm} #
+                      {
+                        activeAlarm.id
+                      }
                     </strong>
 
                   </div>
 
                   <p>
-                    {activeAlarm.message}
+                    {translateBackendText(
+                      activeAlarm
+                        .message,
+                      safeLanguage
+                    )}
                   </p>
 
                   <div className="alarm-meta">
 
                     <span>
-                      Risk:{" "}
+                      {t.risk}:{" "}
 
                       <strong>
-                        {activeAlarm.risk_score}
+                        {
+                          activeAlarm
+                            .risk_score
+                        }
                       </strong>
                     </span>
 
                     <span>
-                      Opened:{" "}
+                      {t.opened}:{" "}
 
                       <strong>
                         {formatTime(
-                          activeAlarm.opened_at
+                          activeAlarm
+                            .opened_at,
+                          safeLanguage
                         )}
                       </strong>
                     </span>
@@ -1131,7 +2068,9 @@ function PanelDetail({
                     ✓
                   </span>
 
-                  No active alarm for this panel.
+                  {
+                    t.noActiveAlarm
+                  }
 
                 </div>
 
@@ -1146,11 +2085,15 @@ function PanelDetail({
 
                 <div>
                   <p className="eyebrow">
-                    TREND ANALYSIS
+                    {
+                      t.trendAnalysis
+                    }
                   </p>
 
                   <h3>
-                    Historical Signals
+                    {
+                      t.historicalSignals
+                    }
                   </h3>
                 </div>
 
@@ -1158,27 +2101,33 @@ function PanelDetail({
                 <div
                   className="pd-trend-tabs"
                   role="tablist"
-                  aria-label="Trend chart selection"
+                  aria-label={
+                    t.trendAnalysis
+                  }
                 >
 
                   <button
                     type="button"
                     className={
-                      trendTab === "current"
+                      trendTab ===
+                      "current"
                         ? "active"
                         : ""
                     }
                     onClick={() =>
-                      setTrendTab("current")
+                      setTrendTab(
+                        "current"
+                      )
                     }
                   >
-                    Current
+                    {t.current}
                   </button>
 
                   <button
                     type="button"
                     className={
-                      trendTab === "temperature"
+                      trendTab ===
+                      "temperature"
                         ? "active"
                         : ""
                     }
@@ -1188,21 +2137,26 @@ function PanelDetail({
                       )
                     }
                   >
-                    Temperature
+                    {
+                      t.temperature
+                    }
                   </button>
 
                   <button
                     type="button"
                     className={
-                      trendTab === "risk"
+                      trendTab ===
+                      "risk"
                         ? "active"
                         : ""
                     }
                     onClick={() =>
-                      setTrendTab("risk")
+                      setTrendTab(
+                        "risk"
+                      )
                     }
                   >
-                    Risk
+                    {t.risk}
                   </button>
 
                 </div>
@@ -1211,7 +2165,9 @@ function PanelDetail({
 
 
               <div className="detail-chart pd-trend-chart">
-                {renderTrendChart()}
+                {
+                  renderTrendChart()
+                }
               </div>
 
             </section>

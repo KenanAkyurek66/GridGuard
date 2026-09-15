@@ -1,0 +1,263 @@
+/* =========================================================
+   GridGuard — Final Jury Polish
+   Conservative visual overrides only.
+   No layout logic or backend behavior is changed here.
+   ========================================================= */
+
+:root {
+  --gg-text-strong: #edf6fa;
+  --gg-text: #c8d8e1;
+  --gg-text-muted: #7893a4;
+  --gg-border-soft: rgba(75, 130, 154, 0.28);
+  --gg-cyan-soft: rgba(85, 190, 223, 0.12);
+}
+
+
+/* ---------- Global readability ---------- */
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+select,
+input {
+  outline: none;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid rgba(85, 190, 223, 0.72);
+  outline-offset: 2px;
+}
+
+p,
+small,
+span {
+  text-rendering: optimizeLegibility;
+}
+
+
+/* ---------- Sticky header ---------- */
+
+.topbar {
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.24);
+}
+
+.top-navigation button,
+.language-switch button,
+.refresh-button,
+.clear-filter-button {
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.top-navigation button:hover,
+.refresh-button:hover,
+.clear-filter-button:hover {
+  transform: translateY(-1px);
+}
+
+
+/* ---------- Dashboard hierarchy ---------- */
+
+.metric-card,
+.panel-card,
+.panel-monitor,
+.alarm-center {
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.11);
+}
+
+.metric-card p,
+.healthy-state p,
+.subtitle,
+.panel-monitor p,
+.alarm-center p {
+  color: var(--gg-text-muted);
+}
+
+.metric-header,
+.panel-count,
+.update-info strong {
+  color: #9db3c0;
+}
+
+
+/* ---------- Tables ---------- */
+
+.panel-table th,
+.alarm-table th {
+  letter-spacing: 0.75px;
+}
+
+.panel-table td,
+.alarm-table td {
+  line-height: 1.45;
+}
+
+.panel-table tbody tr,
+.alarm-table tbody tr {
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.panel-table tbody tr:hover,
+.alarm-table tbody tr:hover {
+  background:
+    rgba(85, 190, 223, 0.035);
+}
+
+.alarm-message-cell {
+  min-width: 300px;
+  max-width: 430px;
+  white-space: normal;
+  color: #9db2bf;
+  line-height: 1.5;
+}
+
+
+/* ---------- Edge Lab ---------- */
+
+.edge-lab-shell,
+.edge-lab-page,
+.edge-lab {
+  text-rendering: optimizeLegibility;
+}
+
+.edge-lab-page p,
+.edge-lab-shell p,
+.edge-lab small {
+  line-height: 1.55;
+}
+
+.edge-lab-card,
+.edge-lab-panel,
+.edge-lab-section {
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.09);
+}
+
+
+/* ---------- Panel View / Digital Twin ---------- */
+
+.panel-view-heading p,
+.simple-twin-header p,
+.power-stage p,
+.simple-sensor-left span,
+.simple-edge-status span,
+.simple-data-flow small,
+.simple-twin-footer p,
+.panel-view-live-note span {
+  color: #6f8c9e;
+}
+
+.simple-digital-twin,
+.simple-power-flow,
+.simple-sensor-panel,
+.simple-edge-module {
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.08);
+}
+
+.power-stage,
+.simple-sensor-row {
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.power-stage:hover,
+.simple-sensor-row:hover {
+  transform: translateY(-1px);
+}
+
+.simple-edge-status strong,
+.stage-reading strong,
+.simple-sensor-right strong {
+  color: var(--gg-text-strong);
+}
+
+
+/* ---------- Panel Detail ---------- */
+
+.detail-drawer {
+  box-shadow:
+    -30px 0 70px rgba(0, 0, 0, 0.42);
+}
+
+.pd-hero-card,
+.pd-context-strip,
+.detail-section {
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.08);
+}
+
+.pd-intelligence-note p,
+.ai-timeline-title small,
+.ai-timeline-empty,
+.stage-note {
+  color: #7895a6;
+  line-height: 1.55;
+}
+
+.pd-disclosure summary {
+  cursor: pointer;
+}
+
+.pd-disclosure summary:hover {
+  background:
+    rgba(85, 190, 223, 0.025);
+}
+
+
+/* ---------- Status emphasis ---------- */
+
+.system-badge.online,
+.health-online,
+.safe-text,
+.online-dot {
+  filter: saturate(1.06);
+}
+
+.risk-pill.critical,
+.table-status.critical,
+.detail-status.critical,
+.alarm-severity-badge.critical {
+  box-shadow:
+    0 0 0 1px rgba(255, 93, 108, 0.08);
+}
+
+
+/* ---------- Responsive jury screen ---------- */
+
+@media (max-width: 1220px) {
+  .topbar {
+    padding-left: 28px;
+    padding-right: 28px;
+    gap: 14px;
+  }
+
+  .topbar-right {
+    gap: 10px;
+  }
+
+  .top-navigation button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (max-width: 980px) {
+  .alarm-message-cell {
+    min-width: 240px;
+  }
+}

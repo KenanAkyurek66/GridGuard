@@ -155,10 +155,10 @@
   display: grid;
 
   grid-template-columns:
-    minmax(220px, 0.95fr)
-    minmax(300px, 1.18fr)
-    minmax(245px, 1.05fr)
-    minmax(205px, 0.82fr);
+    minmax(220px, 0.94fr)
+    minmax(300px, 1.16fr)
+    minmax(245px, 1.04fr)
+    minmax(225px, 0.90fr);
 
   gap: 12px;
 
@@ -1422,5 +1422,518 @@
 
   .edge-lab-scenario-buttons {
     justify-content: flex-start;
+  }
+}
+
+
+/* =========================================================
+   Live backend integration
+   ========================================================= */
+
+.edge-lab-preview-badge.is-live {
+  border-color:
+    rgba(82, 215, 166, 0.38);
+
+  color: #78e0b6;
+
+  background:
+    rgba(13, 70, 55, 0.36);
+}
+
+
+.edge-lab-preview-badge.is-live
+.edge-lab-preview-badge__dot {
+  background: #55d6a4;
+
+  box-shadow:
+    0 0 0 5px
+      rgba(85, 214, 164, 0.08),
+    0 0 16px
+      rgba(85, 214, 164, 0.72);
+}
+
+
+.edge-lab-preview-badge.is-offline {
+  border-color:
+    rgba(255, 93, 108, 0.3);
+
+  color: #ff8995;
+
+  background:
+    rgba(77, 20, 29, 0.3);
+}
+
+
+.edge-lab-preview-badge.is-offline
+.edge-lab-preview-badge__dot {
+  background: #ff5d6c;
+
+  box-shadow:
+    0 0 0 5px
+      rgba(255, 93, 108, 0.07),
+    0 0 16px
+      rgba(255, 93, 108, 0.58);
+}
+
+
+.edge-lab-live-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  margin:
+    -7px 0 16px;
+
+  padding:
+    9px 11px;
+
+  border:
+    1px solid
+      rgba(49, 93, 109, 0.36);
+
+  border-radius: 9px;
+
+  background:
+    rgba(3, 19, 26, 0.48);
+}
+
+
+.edge-lab-live-strip span {
+  color: #4d7281;
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+
+.edge-lab-live-strip strong {
+  margin-right: 12px;
+
+  color: #9bc6d6;
+
+  font-size: 8px;
+
+  letter-spacing: 0.4px;
+}
+
+
+.edge-lab-result__metrics--live {
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 6px;
+
+  margin-top: 15px;
+}
+
+
+.edge-lab-result__metrics--live
+> div {
+  padding: 9px;
+}
+
+
+.edge-lab-result__metric-wide {
+  grid-column:
+    1 / -1;
+}
+
+
+.edge-lab-result__metrics--live
+strong {
+  font-size: 9px;
+  line-height: 1.25;
+
+  overflow-wrap:
+    normal;
+
+  word-break:
+    normal;
+
+  hyphens:
+    none;
+}
+
+
+.edge-lab-scenario-panel--live {
+  align-items:
+    stretch;
+}
+
+
+.edge-lab-scenario-copy {
+  min-width: 260px;
+
+  flex:
+    1 1 360px;
+}
+
+
+.edge-lab-scenario-actions {
+  flex:
+    1 1 620px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 10px;
+}
+
+
+.edge-lab-run-button {
+  min-width: 190px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding:
+    11px 16px;
+
+  border:
+    1px solid
+      rgba(83, 200, 232, 0.58);
+
+  border-radius: 8px;
+
+  color: #c7eff9;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(18, 96, 119, 0.72),
+      rgba(9, 55, 70, 0.78)
+    );
+
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.75px;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 22px
+      rgba(0, 0, 0, 0.16),
+    0 0 22px
+      rgba(70, 187, 220, 0.06);
+
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease;
+}
+
+
+.edge-lab-run-button:hover:not(:disabled) {
+  transform:
+    translateY(-1px);
+
+  border-color:
+    rgba(103, 221, 250, 0.82);
+}
+
+
+.edge-lab-run-button:disabled {
+  cursor:
+    not-allowed;
+
+  opacity: 0.48;
+}
+
+
+.edge-lab-run-button__led {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #6edbf6;
+
+  box-shadow:
+    0 0 12px
+      rgba(110, 219, 246, 0.78);
+}
+
+
+.edge-lab--running
+.edge-lab-run-button__led {
+  animation:
+    edge-lab-live-led
+    0.72s
+    ease-in-out
+    infinite;
+}
+
+
+.edge-lab-progress {
+  max-width: 440px;
+
+  margin-top: 12px;
+}
+
+
+.edge-lab-progress__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 6px;
+}
+
+
+.edge-lab-progress__label span {
+  color: #527382;
+
+  font-size: 7px;
+
+  text-transform: uppercase;
+}
+
+
+.edge-lab-progress__label strong {
+  color: #8ab4c4;
+
+  font-size: 8px;
+}
+
+
+.edge-lab-progress__track {
+  overflow: hidden;
+
+  height: 4px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(57, 92, 104, 0.38);
+}
+
+
+.edge-lab-progress__track span {
+  display: block;
+
+  width: 0;
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #3ea9c9,
+      #6ee0f7
+    );
+
+  box-shadow:
+    0 0 12px
+      rgba(86, 207, 236, 0.5);
+
+  transition:
+    width 260ms ease;
+}
+
+
+.edge-lab-error {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-top: 14px;
+
+  padding: 12px 14px;
+
+  border:
+    1px solid
+      rgba(255, 93, 108, 0.4);
+
+  border-radius: 10px;
+
+  background:
+    rgba(82, 21, 30, 0.28);
+}
+
+
+.edge-lab-error strong {
+  color: #ff7e8b;
+
+  font-size: 8px;
+
+  letter-spacing: 0.8px;
+}
+
+
+.edge-lab-error span {
+  color: #c58d94;
+
+  font-size: 8px;
+}
+
+
+.edge-lab-trace {
+  margin-top: 14px;
+
+  padding: 15px;
+
+  border:
+    1px solid
+      rgba(47, 103, 124, 0.36);
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 31, 42, 0.84),
+      rgba(4, 18, 26, 0.91)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.02);
+}
+
+
+.edge-lab-trace__empty {
+  padding:
+    22px 14px;
+
+  border:
+    1px dashed
+      rgba(55, 91, 104, 0.44);
+
+  border-radius: 8px;
+
+  color: #4d6c79;
+
+  font-size: 8px;
+
+  text-align: center;
+}
+
+
+.edge-lab-trace__table-wrap {
+  overflow-x: auto;
+}
+
+
+.edge-lab-trace__table {
+  width: 100%;
+
+  border-collapse:
+    collapse;
+
+  min-width: 780px;
+}
+
+
+.edge-lab-trace__table th,
+.edge-lab-trace__table td {
+  padding:
+    9px 8px;
+
+  border-bottom:
+    1px solid
+      rgba(44, 77, 89, 0.38);
+
+  color: #7896a3;
+
+  font-size: 7px;
+
+  text-align: left;
+}
+
+
+.edge-lab-trace__table th {
+  color: #4f7686;
+
+  font-size: 6px;
+  font-weight: 900;
+
+  letter-spacing: 0.55px;
+
+  text-transform: uppercase;
+}
+
+
+.edge-lab-trace__table
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+
+.edge-lab-trace__table
+tbody tr:last-child {
+  background:
+    rgba(32, 104, 125, 0.08);
+}
+
+
+.edge-lab--running
+.edge-lab-route__pulse::after {
+  animation-duration:
+    0.72s;
+}
+
+
+@keyframes edge-lab-live-led {
+  0%,
+  100% {
+    opacity: 0.45;
+
+    transform:
+      scale(0.88);
+  }
+
+  50% {
+    opacity: 1;
+
+    transform:
+      scale(1.16);
+  }
+}
+
+
+@media (
+  max-width: 1050px
+) {
+  .edge-lab-scenario-actions {
+    align-items:
+      stretch;
+  }
+
+  .edge-lab-run-button {
+    width: 100%;
+  }
+}
+
+
+@media (
+  max-width: 760px
+) {
+  .edge-lab-live-strip {
+    align-items:
+      flex-start;
+  }
+
+  .edge-lab-result__metrics--live {
+    grid-template-columns:
+      1fr;
+  }
+
+  .edge-lab-result__metric-wide {
+    grid-column: auto;
   }
 }

@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import {
   CartesianGrid,
@@ -18,70 +22,286 @@ import "./AiTimeline.css";
 const TIMELINE_LIMIT = 20;
 
 
-function formatTime(value) {
+const TEXT = {
+  tr: {
+    predictiveAi:
+      "Tahminsel AI",
+    ruleRisk:
+      "Kural Riski",
+    ruleState:
+      "Kural Durumu",
+    consensus:
+      "Ortak Karar",
+    anomaly:
+      "Davranışsal Anomali",
+    title:
+      "AI ERKEN UYARI ZAMAN ÇİZELGESİ",
+    subtitle:
+      "Canlı oturum geçmişi · pano açık kaldığı sürece telemetri geçmişi",
+    confirmed:
+      "ERKEN UYARI DOĞRULANDI",
+    ledBy:
+      "AI önden sinyal verdi:",
+    cycle:
+      "telemetri çevrimi",
+    cycles:
+      "telemetri çevrimi",
+    observation:
+      "CANLI GÖZLEM",
+    waitingTransitions:
+      "Durum geçişleri bekleniyor",
+    predictiveThreshold:
+      "Tahmin eşiği",
+    ruleThresholds:
+      "Kural eşikleri",
+    warning:
+      "UYARI",
+    high:
+      "YÜKSEK",
+    critical:
+      "KRİTİK",
+    keepPanel:
+      "panosunu telemetri değişirken açık tutun.",
+    timelineAfter:
+      "Zaman çizelgesi bir sonraki telemetri örneğinden sonra görünecek.",
+    predictiveLegend:
+      "Tahminsel AI %",
+    ruleLegend:
+      "Kural Risk Skoru",
+  },
+
+  en: {
+    predictiveAi:
+      "Predictive AI",
+    ruleRisk:
+      "Rule Risk",
+    ruleState:
+      "Rule State",
+    consensus:
+      "Consensus",
+    anomaly:
+      "Behavioral Anomaly",
+    title:
+      "AI EARLY-WARNING TIMELINE",
+    subtitle:
+      "Live session history · telemetry history while the panel remains open",
+    confirmed:
+      "EARLY WARNING CONFIRMED",
+    ledBy:
+      "AI led by",
+    cycle:
+      "telemetry cycle",
+    cycles:
+      "telemetry cycles",
+    observation:
+      "LIVE OBSERVATION",
+    waitingTransitions:
+      "Waiting for state transitions",
+    predictiveThreshold:
+      "Predictive threshold",
+    ruleThresholds:
+      "Rule thresholds",
+    warning:
+      "WARNING",
+    high:
+      "HIGH",
+    critical:
+      "CRITICAL",
+    keepPanel:
+      "panel open while telemetry changes.",
+    timelineAfter:
+      "Timeline will appear after the next telemetry sample.",
+    predictiveLegend:
+      "Predictive AI %",
+    ruleLegend:
+      "Rule Risk Score",
+  },
+};
+
+
+const STATUS = {
+  tr: {
+    NORMAL: "Normal",
+    WARNING: "Uyarı",
+    HIGH: "Yüksek",
+    CRITICAL: "Kritik",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    NORMAL: "Normal",
+    WARNING: "Warning",
+    HIGH: "High",
+    CRITICAL: "Critical",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const CONSENSUS = {
+  tr: {
+    OBSERVE: "İzle",
+    EARLY_WARNING: "Erken Uyarı",
+    CRITICAL: "Kritik",
+    HOLD_UNRELIABLE: "Güvenilmez Veriyi Tut",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    OBSERVE: "Observe",
+    EARLY_WARNING: "Early Warning",
+    CRITICAL: "Critical",
+    HOLD_UNRELIABLE: "Hold Unreliable",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const ANOMALY = {
+  tr: {
+    NORMAL: "Normal",
+    LOW: "Düşük",
+    MEDIUM: "Orta",
+    HIGH: "Yüksek",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    NORMAL: "Normal",
+    LOW: "Low",
+    MEDIUM: "Medium",
+    HIGH: "High",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+function mapLabel(
+  map,
+  language,
+  value
+) {
+  const key =
+    String(
+      value ?? "UNKNOWN"
+    ).toUpperCase();
+
+  return (
+    map[language]?.[key] ??
+    String(
+      value ?? "--"
+    ).replaceAll(
+      "_",
+      " "
+    )
+  );
+}
+
+
+function formatTime(
+  value,
+  language
+) {
   if (!value) {
     return "--";
   }
 
-  return new Date(value).toLocaleTimeString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  return new Date(
+    value
+  ).toLocaleTimeString(
+    language === "tr"
+      ? "tr-TR"
+      : "en-GB",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }
+  );
 }
 
 
-function formatPercent(value, digits = 1) {
-  if (value === null || value === undefined) {
+function formatPercent(
+  value,
+  digits = 1
+) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
     return "--";
   }
 
-  return `${Number(value).toFixed(digits)}%`;
+  return `${Number(
+    value
+  ).toFixed(digits)}%`;
 }
 
 
-function humanize(value) {
-  if (!value) {
-    return "UNKNOWN";
-  }
-
-  return String(value).replaceAll("_", " ");
-}
-
-
-function TimelineTooltip({ active, payload }) {
-  if (!active || !payload || payload.length === 0) {
+function TimelineTooltip({
+  active,
+  payload,
+  language,
+}) {
+  if (
+    !active ||
+    !payload ||
+    payload.length === 0
+  ) {
     return null;
   }
 
-  const sample = payload[0]?.payload;
+  const sample =
+    payload[0]?.payload;
 
   if (!sample) {
     return null;
   }
 
+  const t =
+    TEXT[language];
+
   return (
     <div className="ai-timeline-tooltip">
-      <strong>{sample.time}</strong>
+      <strong>
+        {sample.time}
+      </strong>
 
       <span>
-        Predictive AI: {formatPercent(sample.predictive, 2)}
+        {t.predictiveAi}:{" "}
+        {formatPercent(
+          sample.predictive,
+          2
+        )}
       </span>
 
       <span>
-        Rule Risk: {sample.ruleRisk}/100
+        {t.ruleRisk}:{" "}
+        {sample.ruleRisk}/100
       </span>
 
       <span>
-        Rule State: {humanize(sample.ruleStatus)}
+        {t.ruleState}:{" "}
+        {mapLabel(
+          STATUS,
+          language,
+          sample.ruleStatus
+        )}
       </span>
 
       <span>
-        Consensus: {humanize(sample.consensus)}
+        {t.consensus}:{" "}
+        {mapLabel(
+          CONSENSUS,
+          language,
+          sample.consensus
+        )}
       </span>
 
       <span>
-        Behavioral Anomaly: {humanize(sample.anomaly)}
+        {t.anomaly}:{" "}
+        {mapLabel(
+          ANOMALY,
+          language,
+          sample.anomaly
+        )}
       </span>
     </div>
   );
@@ -92,21 +312,41 @@ function AiTimeline({
   panel,
   risk,
   intelligence,
+  language = "tr",
 }) {
-  const [timeline, setTimeline] = useState([]);
+  const safeLanguage =
+    language === "en"
+      ? "en"
+      : "tr";
 
-  const lastSampleRef = useRef(null);
+  const t =
+    TEXT[safeLanguage];
 
-  const predictive = intelligence?.predictive;
-  const anomaly = intelligence?.anomaly;
-  const consensus = intelligence?.consensus;
+  const [
+    timeline,
+    setTimeline,
+  ] = useState([]);
 
-  const panelId = panel?.panel_id;
+  const lastSampleRef =
+    useRef(null);
+
+  const predictive =
+    intelligence?.predictive;
+
+  const anomaly =
+    intelligence?.anomaly;
+
+  const consensus =
+    intelligence?.consensus;
+
+  const panelId =
+    panel?.panel_id;
 
 
   useEffect(() => {
     setTimeline([]);
-    lastSampleRef.current = null;
+    lastSampleRef.current =
+      null;
   }, [panelId]);
 
 
@@ -119,61 +359,76 @@ function AiTimeline({
       return;
     }
 
-    const predictiveProbability = Number(
-      predictive?.probability_pct ?? 0
-    );
+    const predictiveProbability =
+      Number(
+        predictive
+          ?.probability_pct ??
+        0
+      );
 
-    const ruleRisk = Number(
-      risk?.risk_score ?? 0
-    );
+    const ruleRisk =
+      Number(
+        risk?.risk_score ??
+        0
+      );
 
     const timestamp =
       panel?.last_seen ??
-      new Date().toISOString();
+      new Date()
+        .toISOString();
 
     const sampleKey = [
       panelId,
       timestamp,
       ruleRisk,
       predictiveProbability,
-      predictive?.decision ?? "UNKNOWN",
-      consensus?.status ?? "UNKNOWN",
+      predictive?.decision ??
+        "UNKNOWN",
+      consensus?.status ??
+        "UNKNOWN",
     ].join("|");
 
-    if (lastSampleRef.current === sampleKey) {
+    if (
+      lastSampleRef.current ===
+      sampleKey
+    ) {
       return;
     }
 
-    lastSampleRef.current = sampleKey;
+    lastSampleRef.current =
+      sampleKey;
 
     const newSample = {
       key: sampleKey,
-
-      time: formatTime(timestamp),
-
-      predictive: predictiveProbability,
-
+      time: formatTime(
+        timestamp,
+        safeLanguage
+      ),
+      predictive:
+        predictiveProbability,
       predictiveDecision:
-        predictive?.decision ?? "UNKNOWN",
-
+        predictive?.decision ??
+        "UNKNOWN",
       ruleRisk,
-
       ruleStatus:
-        risk?.status ?? "UNKNOWN",
-
+        risk?.status ??
+        "UNKNOWN",
       consensus:
-        consensus?.status ?? "UNKNOWN",
-
+        consensus?.status ??
+        "UNKNOWN",
       anomaly:
-        anomaly?.level ?? "UNKNOWN",
+        anomaly?.level ??
+        "UNKNOWN",
     };
 
-    setTimeline((previous) => {
-      return [
+    setTimeline(
+      (previous) => [
         ...previous,
         newSample,
-      ].slice(-TIMELINE_LIMIT);
-    });
+      ].slice(
+        -TIMELINE_LIMIT
+      )
+    );
   }, [
     panelId,
     panel?.last_seen,
@@ -184,13 +439,16 @@ function AiTimeline({
     predictive?.decision,
     anomaly?.level,
     consensus?.status,
+    safeLanguage,
   ]);
 
 
   const firstAiEscalationIndex =
     timeline.findIndex(
       (sample) =>
-        sample.predictiveDecision === "ESCALATION"
+        sample
+          .predictiveDecision ===
+        "ESCALATION"
     );
 
   const firstRuleWarningIndex =
@@ -200,7 +458,9 @@ function AiTimeline({
           "WARNING",
           "HIGH",
           "CRITICAL",
-        ].includes(sample.ruleStatus)
+        ].includes(
+          sample.ruleStatus
+        )
     );
 
 
@@ -216,11 +476,14 @@ function AiTimeline({
 
   const predictiveThresholdPercent =
     Number(
-      predictive?.threshold ?? 0.505644
+      predictive?.threshold ??
+      0.505644
     ) * 100;
 
 
-  if (!intelligence?.available) {
+  if (
+    !intelligence?.available
+  ) {
     return null;
   }
 
@@ -233,30 +496,29 @@ function AiTimeline({
         <div className="ai-timeline-title">
 
           <span>
-            AI EARLY-WARNING TIMELINE
+            {t.title}
           </span>
 
           <small>
-            Live session history · panel açık
-            kaldığı sürece telemetry geçmişi
+            {t.subtitle}
           </small>
 
         </div>
 
 
-        {earlyWarningLead !== null ? (
+        {earlyWarningLead !==
+        null ? (
 
           <div className="ai-lead-badge confirmed">
 
             <strong>
-              EARLY WARNING CONFIRMED
+              {t.confirmed}
             </strong>
 
             <span>
-              AI led by {earlyWarningLead} telemetry{" "}
-              {earlyWarningLead === 1
-                ? "cycle"
-                : "cycles"}
+              {safeLanguage === "tr"
+                ? `${t.ledBy} ${earlyWarningLead} ${earlyWarningLead === 1 ? t.cycle : t.cycles}`
+                : `${t.ledBy} ${earlyWarningLead} ${earlyWarningLead === 1 ? t.cycle : t.cycles}`}
             </span>
 
           </div>
@@ -266,11 +528,11 @@ function AiTimeline({
           <div className="ai-lead-badge">
 
             <strong>
-              LIVE OBSERVATION
+              {t.observation}
             </strong>
 
             <span>
-              Waiting for state transitions
+              {t.waitingTransitions}
             </span>
 
           </div>
@@ -280,7 +542,8 @@ function AiTimeline({
       </div>
 
 
-      {timeline.length >= 2 ? (
+      {timeline.length >=
+      2 ? (
 
         <>
           <div className="ai-timeline-chart">
@@ -326,7 +589,11 @@ function AiTimeline({
 
                 <Tooltip
                   content={
-                    <TimelineTooltip />
+                    <TimelineTooltip
+                      language={
+                        safeLanguage
+                      }
+                    />
                   }
                 />
 
@@ -339,7 +606,9 @@ function AiTimeline({
 
 
                 <ReferenceLine
-                  y={predictiveThresholdPercent}
+                  y={
+                    predictiveThresholdPercent
+                  }
                   stroke="#55bedf"
                   strokeDasharray="5 5"
                   strokeOpacity={0.6}
@@ -373,7 +642,9 @@ function AiTimeline({
                 <Line
                   type="monotone"
                   dataKey="predictive"
-                  name="Predictive AI %"
+                  name={
+                    t.predictiveLegend
+                  }
                   stroke="#55bedf"
                   strokeWidth={3}
                   dot={{
@@ -382,14 +653,18 @@ function AiTimeline({
                   activeDot={{
                     r: 6,
                   }}
-                  isAnimationActive={false}
+                  isAnimationActive={
+                    false
+                  }
                 />
 
 
                 <Line
                   type="monotone"
                   dataKey="ruleRisk"
-                  name="Rule Risk Score"
+                  name={
+                    t.ruleLegend
+                  }
                   stroke="#ff8a4c"
                   strokeWidth={2.5}
                   dot={{
@@ -398,7 +673,9 @@ function AiTimeline({
                   activeDot={{
                     r: 6,
                   }}
-                  isAnimationActive={false}
+                  isAnimationActive={
+                    false
+                  }
                 />
 
               </LineChart>
@@ -411,7 +688,7 @@ function AiTimeline({
           <div className="ai-timeline-footer">
 
             <span>
-              Predictive threshold:{" "}
+              {t.predictiveThreshold}:{" "}
               {formatPercent(
                 predictiveThresholdPercent,
                 1
@@ -419,8 +696,10 @@ function AiTimeline({
             </span>
 
             <span>
-              Rule thresholds:
-              WARNING 20 · HIGH 45 · CRITICAL 75
+              {t.ruleThresholds}:{" "}
+              {t.warning} 20 ·{" "}
+              {t.high} 45 ·{" "}
+              {t.critical} 75
             </span>
 
           </div>
@@ -430,12 +709,12 @@ function AiTimeline({
 
         <div className="ai-timeline-empty">
 
-          Keep the {panelId ?? "selected"} panel open while
-          telemetry changes.
+          {safeLanguage === "tr"
+            ? `${panelId ?? "Seçili"} ${t.keepPanel}`
+            : `Keep the ${panelId ?? "selected"} ${t.keepPanel}`}
 
           <strong>
-            Timeline will appear after the
-            next telemetry sample.
+            {t.timelineAfter}
           </strong>
 
         </div>

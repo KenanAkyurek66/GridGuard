@@ -16,8 +16,10 @@ import {
 } from "recharts";
 
 import "./App.css";
+import "./LanguageSwitch.css";
 
 import AlarmCenter from "./AlarmCenter";
+import EdgeLab from "./EdgeLab";
 
 import PanelDetail, {
   fetchPanelDetail,
@@ -39,7 +41,341 @@ const RISK_COLORS = {
 };
 
 
+const TEXT = {
+  tr: {
+    operationsCenter:
+      "Operasyon Merkezi",
+    overview:
+      "Genel Bakış",
+    edgeLab:
+      "Edge Lab",
+    panelView:
+      "Panel Görünümü",
+    alarms:
+      "Alarmlar",
+    panels:
+      "Panolar",
+    lastUpdate:
+      "Son Güncelleme",
+    systemOnline:
+      "SİSTEM ÇEVRİMİÇİ",
+    systemOffline:
+      "SİSTEM ÇEVRİMDIŞI",
+    eyebrow:
+      "ALÇAK GERİLİM DAĞITIM İZLEME",
+    gridOverview:
+      "Şebeke Genel Bakışı",
+    subtitle:
+      "Gerçek zamanlı telemetri, açıklanabilir risk analizi ve erken uyarı izleme.",
+    refresh:
+      "Verileri Yenile",
+    connectedPanels:
+      "Bağlı Panolar",
+    connectedPanelsNote:
+      "Kayıtlı izleme modülleri",
+    activeAlarms:
+      "Aktif Alarmlar",
+    activeAlarmsNote:
+      "Açık operasyon olayları",
+    viewAlarmCenter:
+      "Alarm Merkezini Gör →",
+    systemHealth:
+      "Sistem Sağlığı",
+    checking:
+      "KONTROL EDİLİYOR",
+    online:
+      "ÇEVRİMİÇİ",
+    offline:
+      "ÇEVRİMDIŞI",
+    systemHealthNote:
+      "GridGuard API ve izleme çekirdeği",
+    normal:
+      "Normal",
+    warning:
+      "Uyarı",
+    high:
+      "Yüksek",
+    critical:
+      "Kritik",
+    unknown:
+      "Bilinmiyor",
+    liveStatus:
+      "CANLI DURUM",
+    riskDistribution:
+      "Risk Dağılımı",
+    noRiskData:
+      "Risk verisi bulunmuyor.",
+    priorityMonitoring:
+      "ÖNCELİKLİ İZLEME",
+    highestRiskPanels:
+      "En Yüksek Riskli Panolar",
+    noElevatedRisk:
+      "Yükselmiş riskli pano yok",
+    allNormal:
+      "Değerlendirilen tüm panolar normal çalışma koşullarında.",
+    assetMonitoring:
+      "VARLIK İZLEME",
+    panelMonitor:
+      "Pano İzleme",
+    panelMonitorNote:
+      "Kayıtlı panoların canlı operasyon durumu.",
+    showing:
+      "Gösterilen",
+    panelWord:
+      "pano",
+    clearFilters:
+      "Filtreleri Temizle",
+    searchPlaceholder:
+      "Pano kimliği ara...",
+    allStatuses:
+      "Tüm Durumlar",
+    tablePanel:
+      "Pano",
+    tableStatus:
+      "Durum",
+    tableRisk:
+      "Risk",
+    tableCurrent:
+      "Akım",
+    tableCableTemp:
+      "Kablo Sıcaklığı",
+    tableAmbient:
+      "Ortam",
+    tableHumidity:
+      "Nem",
+    tablePD:
+      "PD",
+    tableQuality:
+      "Kalite",
+    tableLastSeen:
+      "Son Görülme",
+    noMatchingPanels:
+      "Eşleşen pano bulunamadı.",
+    footer:
+      "GridGuard Edge İzleme ve Erken Uyarı Sistemi",
+    autoRefresh:
+      "Otomatik yenileme: 5 saniye",
+    panelsLabel:
+      "Panolar",
+  },
+
+  en: {
+    operationsCenter:
+      "Operations Center",
+    overview:
+      "Overview",
+    edgeLab:
+      "Edge Lab",
+    panelView:
+      "Panel View",
+    alarms:
+      "Alarms",
+    panels:
+      "Panels",
+    lastUpdate:
+      "Last update",
+    systemOnline:
+      "SYSTEM ONLINE",
+    systemOffline:
+      "SYSTEM OFFLINE",
+    eyebrow:
+      "LOW VOLTAGE DISTRIBUTION MONITORING",
+    gridOverview:
+      "Grid Overview",
+    subtitle:
+      "Real-time telemetry, explainable risk analysis and early-warning monitoring.",
+    refresh:
+      "Refresh Data",
+    connectedPanels:
+      "Connected Panels",
+    connectedPanelsNote:
+      "Registered monitoring modules",
+    activeAlarms:
+      "Active Alarms",
+    activeAlarmsNote:
+      "Open operational incidents",
+    viewAlarmCenter:
+      "View Alarm Center →",
+    systemHealth:
+      "System Health",
+    checking:
+      "CHECKING",
+    online:
+      "ONLINE",
+    offline:
+      "OFFLINE",
+    systemHealthNote:
+      "GridGuard API and monitoring core",
+    normal:
+      "Normal",
+    warning:
+      "Warning",
+    high:
+      "High",
+    critical:
+      "Critical",
+    unknown:
+      "Unknown",
+    liveStatus:
+      "LIVE STATUS",
+    riskDistribution:
+      "Risk Distribution",
+    noRiskData:
+      "No risk data available.",
+    priorityMonitoring:
+      "PRIORITY MONITORING",
+    highestRiskPanels:
+      "Highest Risk Panels",
+    noElevatedRisk:
+      "No elevated-risk panels",
+    allNormal:
+      "All currently evaluated panels are operating within normal conditions.",
+    assetMonitoring:
+      "ASSET MONITORING",
+    panelMonitor:
+      "Panel Monitor",
+    panelMonitorNote:
+      "Live operational state of registered panels.",
+    showing:
+      "Showing",
+    panelWord:
+      "panels",
+    clearFilters:
+      "Clear Filters",
+    searchPlaceholder:
+      "Search panel ID...",
+    allStatuses:
+      "All Statuses",
+    tablePanel:
+      "Panel",
+    tableStatus:
+      "Status",
+    tableRisk:
+      "Risk",
+    tableCurrent:
+      "Current",
+    tableCableTemp:
+      "Cable Temp",
+    tableAmbient:
+      "Ambient",
+    tableHumidity:
+      "Humidity",
+    tablePD:
+      "PD",
+    tableQuality:
+      "Quality",
+    tableLastSeen:
+      "Last Seen",
+    noMatchingPanels:
+      "No matching panels found.",
+    footer:
+      "GridGuard Edge Monitoring & Early Warning System",
+    autoRefresh:
+      "Auto-refresh: 5 seconds",
+    panelsLabel:
+      "Panels",
+  },
+};
+
+
+const STATUS_LABELS = {
+  tr: {
+    NORMAL: "Normal",
+    WARNING: "Uyarı",
+    HIGH: "Yüksek",
+    CRITICAL: "Kritik",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    NORMAL: "Normal",
+    WARNING: "Warning",
+    HIGH: "High",
+    CRITICAL: "Critical",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const QUALITY_LABELS = {
+  tr: {
+    GOOD: "İyi",
+    DEGRADED: "Düşük Kalite",
+    BAD: "Hatalı",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    GOOD: "Good",
+    DEGRADED: "Degraded",
+    BAD: "Bad",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const PRIMARY_RISK_LABELS = {
+  tr: {
+    NONE: "Yok",
+    NO_DATA: "Veri Yok",
+    THERMAL: "Termal",
+    CURRENT: "Akım",
+    OVERCURRENT: "Aşırı Akım",
+    PARTIAL_DISCHARGE: "Kısmi Deşarj",
+    ENVIRONMENT: "Çevresel",
+    ARC_FLASH: "Ark Parlaması",
+  },
+  en: {
+    NONE: "None",
+    NO_DATA: "No Data",
+    THERMAL: "Thermal",
+    CURRENT: "Current",
+    OVERCURRENT: "Overcurrent",
+    PARTIAL_DISCHARGE: "Partial Discharge",
+    ENVIRONMENT: "Environment",
+    ARC_FLASH: "Arc Flash",
+  },
+};
+
+
+function labelFromMap(
+  map,
+  language,
+  value
+) {
+  const key =
+    String(
+      value ?? "UNKNOWN"
+    ).toUpperCase();
+
+  return (
+    map?.[language]?.[key] ??
+    String(
+      value ?? "--"
+    ).replaceAll(
+      "_",
+      " "
+    )
+  );
+}
+
+
 function App() {
+  const [
+    language,
+    setLanguage,
+  ] = useState(() => {
+    const saved =
+      window.localStorage.getItem(
+        "gridguard-language"
+      );
+
+    return saved === "en"
+      ? "en"
+      : "tr";
+  });
+
+  const t =
+    TEXT[language];
+
   const [summary, setSummary] =
     useState(null);
 
@@ -93,22 +429,36 @@ function App() {
   ] = useState(null);
 
 
+  useEffect(() => {
+    window.localStorage.setItem(
+      "gridguard-language",
+      language
+    );
+
+    document.documentElement.lang =
+      language;
+  }, [language]);
+
+
   const scrollToSection =
-    useCallback((sectionId) => {
-      const section =
-        document.getElementById(
-          sectionId
-        );
+    useCallback(
+      (sectionId) => {
+        const section =
+          document.getElementById(
+            sectionId
+          );
 
-      if (!section) {
-        return;
-      }
+        if (!section) {
+          return;
+        }
 
-      section.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, []);
+        section.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      },
+      []
+    );
 
 
   const loadDashboard =
@@ -118,32 +468,31 @@ function App() {
           summaryResponse,
           panelsResponse,
           alarmsResponse,
-        ] = await Promise.all([
-          axios.get(
-            `${API_BASE_URL}/dashboard/summary`
-          ),
-
-          axios.get(
-            `${API_BASE_URL}/dashboard/panels`
-          ),
-
-          axios.get(
-            `${API_BASE_URL}/alarms`
-          ),
-        ]);
+        ] =
+          await Promise.all([
+            axios.get(
+              `${API_BASE_URL}/dashboard/summary`
+            ),
+            axios.get(
+              `${API_BASE_URL}/dashboard/panels`
+            ),
+            axios.get(
+              `${API_BASE_URL}/alarms`
+            ),
+          ]);
 
         setSummary(
           summaryResponse.data
         );
 
         setPanels(
-          panelsResponse.data.panels ??
-            []
+          panelsResponse.data
+            .panels ?? []
         );
 
         setAlarms(
-          alarmsResponse.data.alarms ??
-            []
+          alarmsResponse.data
+            .alarms ?? []
         );
 
         setBackendOnline(true);
@@ -207,7 +556,9 @@ function App() {
           );
 
           setPanelDetailError(
-            "Panel detail could not be loaded."
+            language === "tr"
+              ? "Pano ayrıntıları yüklenemedi."
+              : "Panel detail could not be loaded."
           );
         } finally {
           setPanelDetailLoading(
@@ -215,19 +566,23 @@ function App() {
           );
         }
       },
-      []
+      [language]
     );
 
 
   const closePanelDetail =
     useCallback(() => {
-      setSelectedPanelId(null);
+      setSelectedPanelId(
+        null
+      );
 
       setSelectedPanelDetail(
         null
       );
 
-      setPanelDetailError(null);
+      setPanelDetailError(
+        null
+      );
 
       setPanelDetailLoading(
         false
@@ -355,31 +710,31 @@ function App() {
       () =>
         [
           {
-            name: "Normal",
+            name: t.normal,
             key: "normal",
             value:
               distribution.normal,
           },
           {
-            name: "Warning",
+            name: t.warning,
             key: "warning",
             value:
               distribution.warning,
           },
           {
-            name: "High",
+            name: t.high,
             key: "high",
             value:
               distribution.high,
           },
           {
-            name: "Critical",
+            name: t.critical,
             key: "critical",
             value:
               distribution.critical,
           },
           {
-            name: "Unknown",
+            name: t.unknown,
             key: "unknown",
             value:
               distribution.unknown,
@@ -388,7 +743,10 @@ function App() {
           (item) =>
             item.value > 0
         ),
-      [distribution]
+      [
+        distribution,
+        t,
+      ]
     );
 
 
@@ -448,10 +806,12 @@ function App() {
 
 
   const connectedPanels =
-    summary?.connected_panels ?? 0;
+    summary?.connected_panels ??
+    0;
 
   const activeAlarms =
-    summary?.active_alarms ?? 0;
+    summary?.active_alarms ??
+    0;
 
 
   const panelFiltersActive =
@@ -466,7 +826,9 @@ function App() {
 
     return lastUpdate
       .toLocaleTimeString(
-        "tr-TR",
+        language === "tr"
+          ? "tr-TR"
+          : "en-GB",
         {
           hour: "2-digit",
           minute: "2-digit",
@@ -503,7 +865,9 @@ function App() {
     return new Date(
       value
     ).toLocaleTimeString(
-      "tr-TR",
+      language === "tr"
+        ? "tr-TR"
+        : "en-GB",
       {
         hour: "2-digit",
         minute: "2-digit",
@@ -525,15 +889,13 @@ function App() {
           </div>
 
           <div>
-
             <h1>
               GridGuard
             </h1>
 
             <p>
-              Operations Center
+              {t.operationsCenter}
             </p>
-
           </div>
 
         </div>
@@ -549,7 +911,18 @@ function App() {
               )
             }
           >
-            Overview
+            {t.overview}
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              scrollToSection(
+                "edge-lab"
+              )
+            }
+          >
+            {t.edgeLab}
           </button>
 
           <button
@@ -560,7 +933,7 @@ function App() {
               )
             }
           >
-            Panel View
+            {t.panelView}
           </button>
 
           <button
@@ -571,7 +944,7 @@ function App() {
               )
             }
           >
-            Alarms
+            {t.alarms}
           </button>
 
           <button
@@ -582,7 +955,7 @@ function App() {
               )
             }
           >
-            Panels
+            {t.panels}
           </button>
 
         </nav>
@@ -590,14 +963,49 @@ function App() {
 
         <div className="topbar-right">
 
-          <div className="update-info">
+          <div className="language-switch">
+            <button
+              className={
+                language === "tr"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setLanguage("tr")
+              }
+              type="button"
+              aria-label="Türkçe"
+            >
+              TR
+            </button>
 
-            Last update
+            <span>
+              /
+            </span>
+
+            <button
+              className={
+                language === "en"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setLanguage("en")
+              }
+              type="button"
+              aria-label="English"
+            >
+              EN
+            </button>
+          </div>
+
+
+          <div className="update-info">
+            {t.lastUpdate}
 
             <strong>
               {formatUpdateTime()}
             </strong>
-
           </div>
 
 
@@ -608,13 +1016,11 @@ function App() {
                 : "offline"
             }`}
           >
-
             <span className="status-dot" />
 
             {backendOnline
-              ? "SYSTEM ONLINE"
-              : "SYSTEM OFFLINE"}
-
+              ? t.systemOnline
+              : t.systemOffline}
           </div>
 
         </div>
@@ -634,17 +1040,15 @@ function App() {
             <div>
 
               <p className="eyebrow">
-                LOW VOLTAGE DISTRIBUTION MONITORING
+                {t.eyebrow}
               </p>
 
               <h2>
-                Grid Overview
+                {t.gridOverview}
               </h2>
 
               <p className="subtitle">
-                Real-time telemetry,
-                explainable risk analysis
-                and early-warning monitoring.
+                {t.subtitle}
               </p>
 
             </div>
@@ -652,10 +1056,12 @@ function App() {
 
             <button
               className="refresh-button"
-              onClick={loadDashboard}
+              onClick={
+                loadDashboard
+              }
               type="button"
             >
-              Refresh Data
+              {t.refresh}
             </button>
 
           </section>
@@ -666,18 +1072,11 @@ function App() {
             <article className="metric-card">
 
               <div className="metric-header">
-
                 <span>
-                  Connected Panels
+                  {t.connectedPanels}
                 </span>
 
-                <span
-                  className="
-                    metric-indicator
-                    online-dot
-                  "
-                />
-
+                <span className="metric-indicator online-dot" />
               </div>
 
               <strong>
@@ -687,7 +1086,7 @@ function App() {
               </strong>
 
               <p>
-                Registered monitoring modules
+                {t.connectedPanelsNote}
               </p>
 
             </article>
@@ -704,9 +1103,8 @@ function App() {
             >
 
               <div className="metric-header">
-
                 <span>
-                  Active Alarms
+                  {t.activeAlarms}
                 </span>
 
                 <span
@@ -716,7 +1114,6 @@ function App() {
                       : "online-dot"
                   }`}
                 />
-
               </div>
 
               <strong>
@@ -726,11 +1123,11 @@ function App() {
               </strong>
 
               <p>
-                Open operational incidents
+                {t.activeAlarmsNote}
               </p>
 
               <span className="metric-action-hint">
-                View Alarm Center →
+                {t.viewAlarmCenter}
               </span>
 
             </button>
@@ -739,11 +1136,9 @@ function App() {
             <article className="metric-card">
 
               <div className="metric-header">
-
                 <span>
-                  System Health
+                  {t.systemHealth}
                 </span>
-
               </div>
 
               <strong
@@ -754,15 +1149,14 @@ function App() {
                 }
               >
                 {loading
-                  ? "CHECKING"
+                  ? t.checking
                   : backendOnline
-                    ? "ONLINE"
-                    : "OFFLINE"}
+                    ? t.online
+                    : t.offline}
               </strong>
 
               <p>
-                GridGuard API and
-                monitoring core
+                {t.systemHealthNote}
               </p>
 
             </article>
@@ -772,104 +1166,57 @@ function App() {
 
           <section className="risk-grid">
 
-            <button
-              type="button"
-              className="
-                risk-card
-                risk-filter-card
-                normal-card
-              "
-              onClick={() =>
-                filterPanelsByStatus(
-                  "NORMAL"
-                )
-              }
-            >
+            {[
+              [
+                "NORMAL",
+                "normal-card",
+                distribution.normal,
+              ],
+              [
+                "WARNING",
+                "warning-card",
+                distribution.warning,
+              ],
+              [
+                "HIGH",
+                "high-card",
+                distribution.high,
+              ],
+              [
+                "CRITICAL",
+                "critical-card",
+                distribution.critical,
+              ],
+            ].map(
+              ([
+                status,
+                className,
+                value,
+              ]) => (
+                <button
+                  type="button"
+                  className={`risk-card risk-filter-card ${className}`}
+                  onClick={() =>
+                    filterPanelsByStatus(
+                      status
+                    )
+                  }
+                  key={status}
+                >
+                  <span>
+                    {labelFromMap(
+                      STATUS_LABELS,
+                      language,
+                      status
+                    ).toUpperCase()}
+                  </span>
 
-              <span>
-                NORMAL
-              </span>
-
-              <strong>
-                {distribution.normal}
-              </strong>
-
-            </button>
-
-
-            <button
-              type="button"
-              className="
-                risk-card
-                risk-filter-card
-                warning-card
-              "
-              onClick={() =>
-                filterPanelsByStatus(
-                  "WARNING"
-                )
-              }
-            >
-
-              <span>
-                WARNING
-              </span>
-
-              <strong>
-                {distribution.warning}
-              </strong>
-
-            </button>
-
-
-            <button
-              type="button"
-              className="
-                risk-card
-                risk-filter-card
-                high-card
-              "
-              onClick={() =>
-                filterPanelsByStatus(
-                  "HIGH"
-                )
-              }
-            >
-
-              <span>
-                HIGH
-              </span>
-
-              <strong>
-                {distribution.high}
-              </strong>
-
-            </button>
-
-
-            <button
-              type="button"
-              className="
-                risk-card
-                risk-filter-card
-                critical-card
-              "
-              onClick={() =>
-                filterPanelsByStatus(
-                  "CRITICAL"
-                )
-              }
-            >
-
-              <span>
-                CRITICAL
-              </span>
-
-              <strong>
-                {distribution.critical}
-              </strong>
-
-            </button>
+                  <strong>
+                    {value}
+                  </strong>
+                </button>
+              )
+            )}
 
           </section>
 
@@ -879,19 +1226,15 @@ function App() {
             <article className="panel-card">
 
               <div className="section-header">
-
                 <div>
-
                   <p className="eyebrow">
-                    LIVE STATUS
+                    {t.liveStatus}
                   </p>
 
                   <h3>
-                    Risk Distribution
+                    {t.riskDistribution}
                   </h3>
-
                 </div>
-
               </div>
 
 
@@ -948,22 +1291,20 @@ function App() {
                   ) : (
 
                     <div className="empty-state">
-                      No risk data available.
+                      {t.noRiskData}
                     </div>
 
                   )}
 
 
                   <div className="chart-center">
-
                     <strong>
                       {connectedPanels}
                     </strong>
 
                     <span>
-                      Panels
+                      {t.panelsLabel}
                     </span>
-
                   </div>
 
                 </div>
@@ -974,23 +1315,23 @@ function App() {
                   {[
                     [
                       "normal",
-                      "Normal",
+                      t.normal,
                     ],
                     [
                       "warning",
-                      "Warning",
+                      t.warning,
                     ],
                     [
                       "high",
-                      "High",
+                      t.high,
                     ],
                     [
                       "critical",
-                      "Critical",
+                      t.critical,
                     ],
                     [
                       "unknown",
-                      "Unknown",
+                      t.unknown,
                     ],
                   ].map(
                     ([
@@ -1004,7 +1345,6 @@ function App() {
                       >
 
                         <div>
-
                           <span
                             className="legend-dot"
                             style={{
@@ -1016,7 +1356,6 @@ function App() {
                           />
 
                           {label}
-
                         </div>
 
                         <strong>
@@ -1042,19 +1381,15 @@ function App() {
             <article className="panel-card">
 
               <div className="section-header">
-
                 <div>
-
                   <p className="eyebrow">
-                    PRIORITY MONITORING
+                    {t.priorityMonitoring}
                   </p>
 
                   <h3>
-                    Highest Risk Panels
+                    {t.highestRiskPanels}
                   </h3>
-
                 </div>
-
               </div>
 
 
@@ -1068,13 +1403,11 @@ function App() {
                   </div>
 
                   <h4>
-                    No elevated-risk panels
+                    {t.noElevatedRisk}
                   </h4>
 
                   <p>
-                    All currently evaluated
-                    panels are operating
-                    within normal conditions.
+                    {t.allNormal}
                   </p>
 
                 </div>
@@ -1100,7 +1433,6 @@ function App() {
                       >
 
                         <div>
-
                           <strong>
                             {
                               panel.panel_id
@@ -1108,11 +1440,12 @@ function App() {
                           </strong>
 
                           <span>
-                            {
+                            {labelFromMap(
+                              PRIMARY_RISK_LABELS,
+                              language,
                               panel.primary_risk
-                            }
+                            )}
                           </span>
-
                         </div>
 
 
@@ -1124,9 +1457,11 @@ function App() {
                                 .toLowerCase()
                             }`}
                           >
-                            {
+                            {labelFromMap(
+                              STATUS_LABELS,
+                              language,
                               panel.status
-                            }
+                            )}
                           </span>
 
                           <strong>
@@ -1155,6 +1490,21 @@ function App() {
 
         <section
           className="dashboard-anchor"
+          id="edge-lab"
+        >
+          <EdgeLab
+            language={
+              language
+            }
+            onTelemetryProcessed={
+              loadDashboard
+            }
+          />
+        </section>
+
+
+        <section
+          className="dashboard-anchor"
           id="panel-view"
         >
 
@@ -1162,6 +1512,9 @@ function App() {
             panels={panels}
             onOpenPanel={
               openPanelDetail
+            }
+            language={
+              language
             }
           />
 
@@ -1178,6 +1531,9 @@ function App() {
             onOpenPanel={
               openPanelDetail
             }
+            language={
+              language
+            }
           />
 
         </div>
@@ -1191,28 +1547,24 @@ function App() {
           <div className="monitor-heading">
 
             <div>
-
               <p className="eyebrow">
-                ASSET MONITORING
+                {t.assetMonitoring}
               </p>
 
               <h3>
-                Panel Monitor
+                {t.panelMonitor}
               </h3>
 
               <p>
-                Live operational state
-                of registered panels.
+                {t.panelMonitorNote}
               </p>
-
             </div>
 
 
             <div className="monitor-heading-right">
 
               <div className="panel-count">
-
-                Showing
+                {t.showing}
 
                 <strong>
                   {
@@ -1220,13 +1572,11 @@ function App() {
                   }
                 </strong>
 
-                panels
-
+                {t.panelWord}
               </div>
 
 
               {panelFiltersActive && (
-
                 <button
                   className="clear-filter-button"
                   type="button"
@@ -1234,9 +1584,8 @@ function App() {
                     clearPanelFilters
                   }
                 >
-                  Clear Filters
+                  {t.clearFilters}
                 </button>
-
               )}
 
             </div>
@@ -1248,8 +1597,12 @@ function App() {
 
             <input
               type="text"
-              placeholder="Search panel ID..."
-              value={panelSearch}
+              placeholder={
+                t.searchPlaceholder
+              }
+              value={
+                panelSearch
+              }
               onChange={(event) =>
                 setPanelSearch(
                   event.target.value
@@ -1259,7 +1612,9 @@ function App() {
 
 
             <select
-              value={statusFilter}
+              value={
+                statusFilter
+              }
               onChange={(event) =>
                 setStatusFilter(
                   event.target.value
@@ -1268,27 +1623,27 @@ function App() {
             >
 
               <option value="ALL">
-                All Statuses
+                {t.allStatuses}
               </option>
 
               <option value="NORMAL">
-                Normal
+                {t.normal}
               </option>
 
               <option value="WARNING">
-                Warning
+                {t.warning}
               </option>
 
               <option value="HIGH">
-                High
+                {t.high}
               </option>
 
               <option value="CRITICAL">
-                Critical
+                {t.critical}
               </option>
 
               <option value="UNKNOWN">
-                Unknown
+                {t.unknown}
               </option>
 
             </select>
@@ -1301,26 +1656,38 @@ function App() {
             <table className="panel-table">
 
               <thead>
-
                 <tr>
-                  <th>Panel</th>
-                  <th>Status</th>
-                  <th>Risk</th>
-                  <th>Current</th>
-                  <th>Cable Temp</th>
-                  <th>Ambient</th>
-                  <th className="optional-panel-column">
-                    Humidity
+                  <th>
+                    {t.tablePanel}
                   </th>
-                  <th>PD</th>
-                  <th className="optional-panel-column">
-                    Quality
+                  <th>
+                    {t.tableStatus}
+                  </th>
+                  <th>
+                    {t.tableRisk}
+                  </th>
+                  <th>
+                    {t.tableCurrent}
+                  </th>
+                  <th>
+                    {t.tableCableTemp}
+                  </th>
+                  <th>
+                    {t.tableAmbient}
                   </th>
                   <th className="optional-panel-column">
-                    Last Seen
+                    {t.tableHumidity}
+                  </th>
+                  <th>
+                    {t.tablePD}
+                  </th>
+                  <th className="optional-panel-column">
+                    {t.tableQuality}
+                  </th>
+                  <th className="optional-panel-column">
+                    {t.tableLastSeen}
                   </th>
                 </tr>
-
               </thead>
 
 
@@ -1330,14 +1697,12 @@ function App() {
                 0 ? (
 
                   <tr>
-
                     <td
                       colSpan="10"
                       className="no-panel-results"
                     >
-                      No matching panels found.
+                      {t.noMatchingPanels}
                     </td>
-
                   </tr>
 
                 ) : (
@@ -1362,9 +1727,7 @@ function App() {
                       >
 
                         <td>
-
                           <div className="panel-id-cell">
-
                             <span
                               className={`panel-state-dot ${
                                 panel.status
@@ -1377,25 +1740,23 @@ function App() {
                                 panel.panel_id
                               }
                             </strong>
-
                           </div>
-
                         </td>
 
 
                         <td>
-
                           <span
                             className={`table-status ${
                               panel.status
                                 .toLowerCase()
                             }`}
                           >
-                            {
+                            {labelFromMap(
+                              STATUS_LABELS,
+                              language,
                               panel.status
-                            }
+                            )}
                           </span>
-
                         </td>
 
 
@@ -1456,10 +1817,11 @@ function App() {
                               ).toLowerCase()
                             }`}
                           >
-                            {
-                              panel.data_quality ??
-                              "UNKNOWN"
-                            }
+                            {labelFromMap(
+                              QUALITY_LABELS,
+                              language,
+                              panel.data_quality
+                            )}
                           </span>
 
                         </td>
@@ -1488,16 +1850,13 @@ function App() {
 
 
         <footer className="dashboard-footer">
-
           <span>
-            GridGuard Edge Monitoring
-            & Early Warning System
+            {t.footer}
           </span>
 
           <span>
-            Auto-refresh: 5 seconds
+            {t.autoRefresh}
           </span>
-
         </footer>
 
       </main>
@@ -1517,6 +1876,9 @@ function App() {
           }
           onClose={
             closePanelDetail
+          }
+          language={
+            language
           }
         />
 

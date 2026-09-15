@@ -14,14 +14,153 @@ import DigitalPanelTwin from "./DigitalPanelTwin";
 import "./PanelView.css";
 
 
+const TEXT = {
+  tr: {
+    eyebrow:
+      "DİJİTAL DONANIM KATMANI",
+    title:
+      "Pano Görünümü",
+    subtitle:
+      "GridGuard saha enstrümantasyonu ve edge izlemenin canlı sanal temsili.",
+    monitoredPanel:
+      "İZLENEN PANO",
+    fullAnalysis:
+      "Tam Analizi Aç",
+    panel:
+      "Pano",
+    currentState:
+      "Güncel Durum",
+    riskScore:
+      "Risk Skoru",
+    dataQuality:
+      "Veri Kalitesi",
+    unavailable:
+      "Digital Panel Twin kullanılamıyor",
+    loadError:
+      "Digital Panel Twin verisi yüklenemedi.",
+    retry:
+      "Tekrar Dene",
+    loading:
+      "Digital Panel Twin yükleniyor...",
+    waiting:
+      "Pano telemetrisi bekleniyor...",
+    liveHardware:
+      "CANLI SANAL DONANIM",
+    refreshing:
+      "GridGuard telemetrisinden her 5 saniyede bir yenileniyor",
+  },
+
+  en: {
+    eyebrow:
+      "DIGITAL HARDWARE LAYER",
+    title:
+      "Panel View",
+    subtitle:
+      "Live virtual representation of GridGuard field instrumentation and edge monitoring.",
+    monitoredPanel:
+      "MONITORED PANEL",
+    fullAnalysis:
+      "Open Full Analysis",
+    panel:
+      "Panel",
+    currentState:
+      "Current State",
+    riskScore:
+      "Risk Score",
+    dataQuality:
+      "Data Quality",
+    unavailable:
+      "Digital Panel Twin unavailable",
+    loadError:
+      "Digital Panel Twin data could not be loaded.",
+    retry:
+      "Retry",
+    loading:
+      "Loading Digital Panel Twin...",
+    waiting:
+      "Waiting for panel telemetry...",
+    liveHardware:
+      "LIVE VIRTUAL HARDWARE",
+    refreshing:
+      "Refreshing from GridGuard telemetry every 5 seconds",
+  },
+};
+
+
+const STATUS = {
+  tr: {
+    NORMAL: "Normal",
+    WARNING: "Uyarı",
+    HIGH: "Yüksek",
+    CRITICAL: "Kritik",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    NORMAL: "Normal",
+    WARNING: "Warning",
+    HIGH: "High",
+    CRITICAL: "Critical",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+const QUALITY = {
+  tr: {
+    GOOD: "İyi",
+    DEGRADED: "Düşük Kalite",
+    BAD: "Hatalı",
+    UNKNOWN: "Bilinmiyor",
+  },
+  en: {
+    GOOD: "Good",
+    DEGRADED: "Degraded",
+    BAD: "Bad",
+    UNKNOWN: "Unknown",
+  },
+};
+
+
+function mapLabel(
+  map,
+  language,
+  value
+) {
+  const key =
+    String(
+      value ?? "UNKNOWN"
+    ).toUpperCase();
+
+  return (
+    map[language]?.[key] ??
+    String(
+      value ?? "--"
+    ).replaceAll(
+      "_",
+      " "
+    )
+  );
+}
+
+
 function PanelView({
   panels = [],
   onOpenPanel,
+  language = "tr",
 }) {
+  const safeLanguage =
+    language === "en"
+      ? "en"
+      : "tr";
+
+  const t =
+    TEXT[safeLanguage];
+
   const panelIds = useMemo(
     () =>
       panels.map(
-        (panel) => panel.panel_id
+        (panel) =>
+          panel.panel_id
       ),
     [panels]
   );
@@ -39,26 +178,22 @@ function PanelView({
   ] = useState("");
 
 
-  const [
-    detail,
-    setDetail,
-  ] = useState(null);
+  const [detail, setDetail] =
+    useState(null);
 
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
 
-  const [
-    error,
-    setError,
-  ] = useState(null);
+  const [error, setError] =
+    useState(null);
 
 
   useEffect(() => {
-    if (panelIds.length === 0) {
+    if (
+      panelIds.length === 0
+    ) {
       setSelectedPanelId("");
       setDetail(null);
 
@@ -106,12 +241,15 @@ function PanelView({
         );
 
         setError(
-          "Digital Panel Twin data could not be loaded."
+          t.loadError
         );
       } finally {
         setLoading(false);
       }
-    }, [selectedPanelId]);
+    }, [
+      selectedPanelId,
+      t.loadError,
+    ]);
 
 
   useEffect(() => {
@@ -152,22 +290,17 @@ function PanelView({
       <div className="panel-view-heading">
 
         <div>
-
           <p className="eyebrow">
-            DIGITAL HARDWARE LAYER
+            {t.eyebrow}
           </p>
 
           <h2>
-            Panel View
+            {t.title}
           </h2>
 
           <p>
-            Live virtual representation
-            of GridGuard field
-            instrumentation and edge
-            monitoring.
+            {t.subtitle}
           </p>
-
         </div>
 
 
@@ -176,12 +309,14 @@ function PanelView({
           <label
             htmlFor="panel-view-selector"
           >
-            MONITORED PANEL
+            {t.monitoredPanel}
           </label>
 
           <select
             id="panel-view-selector"
-            value={selectedPanelId}
+            value={
+              selectedPanelId
+            }
             onChange={(event) =>
               setSelectedPanelId(
                 event.target.value
@@ -190,14 +325,12 @@ function PanelView({
           >
             {panelIds.map(
               (panelId) => (
-
                 <option
                   key={panelId}
                   value={panelId}
                 >
                   {panelId}
                 </option>
-
               )
             )}
           </select>
@@ -214,7 +347,7 @@ function PanelView({
               )
             }
           >
-            Open Full Analysis
+            {t.fullAnalysis}
           </button>
 
         </div>
@@ -225,23 +358,20 @@ function PanelView({
       <div className="panel-view-status-strip">
 
         <div>
-
           <span>
-            Panel
+            {t.panel}
           </span>
 
           <strong>
             {selectedPanelId ||
               "--"}
           </strong>
-
         </div>
 
 
         <div>
-
           <span>
-            Current State
+            {t.currentState}
           </span>
 
           <strong
@@ -253,18 +383,19 @@ function PanelView({
               ).toLowerCase()
             }`}
           >
-            {selectedPanelSummary
-              ?.status ??
-              "UNKNOWN"}
+            {mapLabel(
+              STATUS,
+              safeLanguage,
+              selectedPanelSummary
+                ?.status
+            )}
           </strong>
-
         </div>
 
 
         <div>
-
           <span>
-            Risk Score
+            {t.riskScore}
           </span>
 
           <strong>
@@ -272,22 +403,22 @@ function PanelView({
               ?.risk_score ??
               "--"}
           </strong>
-
         </div>
 
 
         <div>
-
           <span>
-            Data Quality
+            {t.dataQuality}
           </span>
 
           <strong>
-            {selectedPanelSummary
-              ?.data_quality ??
-              "UNKNOWN"}
+            {mapLabel(
+              QUALITY,
+              safeLanguage,
+              selectedPanelSummary
+                ?.data_quality
+            )}
           </strong>
-
         </div>
 
       </div>
@@ -298,7 +429,7 @@ function PanelView({
         <div className="panel-view-error">
 
           <strong>
-            Digital Panel Twin unavailable
+            {t.unavailable}
           </strong>
 
           <span>
@@ -311,7 +442,7 @@ function PanelView({
               loadPanelTwin
             }
           >
-            Retry
+            {t.retry}
           </button>
 
         </div>
@@ -319,19 +450,19 @@ function PanelView({
       ) : !detail ? (
 
         <div className="panel-view-loading">
-
           {loading
-            ? "Loading Digital Panel Twin..."
-            : "Waiting for panel telemetry..."}
-
+            ? t.loading
+            : t.waiting}
         </div>
 
       ) : (
 
         <>
-
           <DigitalPanelTwin
             detail={detail}
+            language={
+              safeLanguage
+            }
           />
 
 
@@ -340,20 +471,16 @@ function PanelView({
             <span className="panel-view-live-dot" />
 
             <div>
-
               <strong>
-                LIVE VIRTUAL HARDWARE
+                {t.liveHardware}
               </strong>
 
               <span>
-                Refreshing from GridGuard
-                telemetry every 5 seconds
+                {t.refreshing}
               </span>
-
             </div>
 
           </div>
-
         </>
 
       )}
