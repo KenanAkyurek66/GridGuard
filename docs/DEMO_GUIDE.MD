@@ -32,6 +32,7 @@ The recommended jury demonstration should show:
 
 - a healthy multi-panel operating baseline,
 - live telemetry ingestion,
+- the Virtual Edge Lab as the software-based edge/hardware emulator,
 - explainable deterministic risk analysis,
 - predictive AI early warning,
 - behavioral anomaly information,
@@ -114,8 +115,10 @@ AI runtime is available
 LV-050 is NORMAL
 No unwanted active alarms remain
 Browser is already open
+Edge Lab works
 Panel View works
 LV-050 Panel Detail works
+TR / EN language switch works
 ```
 
 Also verify the repository is clean:
@@ -219,10 +222,13 @@ Main navigation:
 
 ```text
 Overview
+Edge Lab
 Panel View
 Alarms
 Panels
 ```
+
+For a Turkish jury session, keep the interface in Turkish unless an English view is specifically requested.
 
 ---
 
@@ -282,6 +288,50 @@ Show:
 The purpose of this step is to establish that GridGuard is not only monitoring one demonstration panel.
 
 The software architecture supports a multi-panel environment.
+
+---
+
+# 10A. Show the Virtual Edge Lab
+
+Open:
+
+```text
+Edge Lab
+```
+
+Use the Edge Lab to explain the physical-to-software concept:
+
+```text
+Field Sensors
+    ↓
+GridGuard Edge
+    ↓
+Telemetry / Data Quality
+    ↓
+GridGuard Backend
+    ↓
+Deterministic Risk + AI Advisory
+    ↓
+Alarm / Operations Center
+```
+
+The Edge Lab is a **software-based virtual edge prototype** connected to the real backend. It is not presented as certified production hardware.
+
+The preferred scenario order is:
+
+```text
+Normal
+→ Overheating
+→ Warning / High / Critical
+→ Recovery
+```
+
+Optional safety demonstrations:
+
+```text
+Bad Sensor
+Arc Event
+```
 
 ---
 

@@ -11,6 +11,8 @@ It combines:
 - alarm lifecycle management,
 - industrial-style MQTT and Modbus integration,
 - a live React Operations Center,
+- a software-based Virtual Edge Lab connected to the live backend,
+- bilingual Turkish / English operator UI,
 - an AI Early-Warning Timeline,
 - and a Digital Panel Twin.
 
@@ -483,6 +485,8 @@ The React frontend currently provides:
 - consensus,
 - AI drivers,
 - AI Early-Warning Timeline,
+- Virtual Edge Lab for live backend-connected edge/hardware emulation,
+- Turkish / English language switching,
 - current trend,
 - temperature trend,
 - risk-score trend,
@@ -492,10 +496,13 @@ Main navigation:
 
 ```text
 Overview
+Edge Lab
 Panel View
 Alarms
 Panels
 ```
+
+The interface supports Turkish and English. Turkish is the default presentation language unless the saved browser preference is English.
 
 ---
 
@@ -730,6 +737,9 @@ GridGuard/
 │   │   ├── AlarmCenter.jsx
 │   │   ├── App.jsx
 │   │   ├── DigitalPanelTwin.jsx
+│   │   ├── EdgeLab.jsx
+│   │   ├── FinalPolish.css
+│   │   ├── LanguageSwitch.css
 │   │   ├── PanelDetail.jsx
 │   │   └── PanelView.jsx
 │   ├── package.json
@@ -895,13 +905,17 @@ Ctrl + C
 
 # Recommended Jury Demonstration
 
-For the primary overheating + predictive AI demonstration:
+The preferred demonstration path is the **Virtual Edge Lab** inside the React Operations Center.
+
+The Edge Lab sends scenario telemetry to the real GridGuard backend and displays the resulting deterministic risk, AI advisory, data-quality state, consensus, and alarm lifecycle.
+
+For the overheating demonstration, use panel `LV-050` and keep its Panel Detail view available so that the AI Early-Warning Timeline can record live session transitions.
+
+The command-line scenario remains available as a fallback:
 
 ```powershell
 python simulator\scenario_overheating_demo.py
 ```
-
-Keep the target panel open in the frontend so that the AI Timeline can record live session transitions.
 
 The key sequence is:
 

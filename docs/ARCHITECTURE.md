@@ -18,6 +18,8 @@ The architecture demonstrates an end-to-end monitoring pipeline that combines:
 - consensus generation,
 - alarm lifecycle management,
 - live operational visualization,
+- software-based virtual edge / hardware emulation,
+- bilingual Turkish / English operator presentation,
 - and external critical-event notification.
 
 GridGuard is currently a **software engineering prototype** supported by a conceptual hardware architecture.
@@ -73,6 +75,7 @@ flowchart LR
     subgraph Sources[Current Prototype Sources]
         SIM100[100 Panel Simulator]
         SCENARIOS[Scenario Simulators]
+        EDGELAB[Virtual Edge Lab]
         MQTTDEV[MQTT Telemetry]
         MODBUSDEV[Modbus TCP Device]
     end
@@ -117,6 +120,7 @@ flowchart LR
 
     SIM100 --> API
     SCENARIOS --> API
+    EDGELAB --> API
 
     MQTTDEV --> MQTT
     MQTT --> API
@@ -174,6 +178,8 @@ Local Validation / Buffering
 The GridGuard Edge Module is currently a **conceptual hardware component**.
 
 The existing software prototype simulates or adapts telemetry that such a device could eventually provide.
+
+The **Virtual Edge Lab** is the software-based prototype of this acquisition layer. It sends controlled telemetry scenarios to the real GridGuard backend and makes the edge-to-server data path observable without claiming to be validated production hardware.
 
 Detailed hardware information is available in:
 
